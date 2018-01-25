@@ -1,0 +1,105 @@
+---
+title: "MATH153, Lab 1"
+author: "Senan Hogan-H."
+date: "25 January 25 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+gc()
+ls()
+options(digits=4)
+require(tidyverse)
+library(xtable)
+options(xtable.floating = FALSE)
+options(xtable.timestamp = "")
+options(xtable.comment = FALSE)
+set.seed(47)
+```
+
+## Question 1.
+
+a.
+
+```{r}
+p_hat <- c() #initialize the vector that I will fill in with the partial sums
+p_value <- c()
+p = c(0:10)/10 # Vector of p values to try over
+n = c(1:1000) #Vector of sample size to repeat over
+for (k in p) {
+  for (i in n) {
+    p_i <- mean(rbinom(1000, i, k))/i
+    p_hat <- c(p_hat, p_i)
+    p_value <- c(p_value, k)
+  }
+}
+P.data <- data.frame(n, p_hat, p_value)
+P.data %>% ggplot(aes(n, p_hat, col=p_value)) +
+                    geom_point() + ylim(0, 1)
+```
+$$ E[ \hat{p} ]= E[\frac{\sum_{i=1}^n X_i}{n}]=\frac{1}{n}\sum_{i=1}^n X_i=\frac{1}{n}pn=p$$.
+So that $\hat{p}$ is unbiased in general, and so sample size does not matter for this small-sample property.
+
+b. 
+```{r}
+p_i <- p_0.1 <- p_0.25 <- p_0.5 <- p_0.75 <- p_0.9 <- c() 
+n = c(1:1000) #Vector of sample size to repeat over
+for (i in n) {
+  p_i <- mean(rbinom(1, i, 0.1))/i
+  p_0.1 <- c(p_0.1, p_i)
+}
+for (i in n) {
+  p_i <- mean(rbinom(1, i, 0.25))/i
+  p_0.25 <- c(p_0.25, p_i)
+}
+for (i in n) {
+  p_i <- mean(rbinom(1, i, 0.5))/i
+  p_0.5 <- c(p_0.5, p_i)
+}
+for (i in n) {
+  p_i <- mean(rbinom(1, i, 0.75))/i
+  p_0.75 <- c(p_0.75, p_i)
+}
+for (i in n) {
+  p_i <- mean(rbinom(1, i, 0.9))/i
+  p_0.9 <- c(p_0.9, p_i)
+}
+
+P.data <- data.frame(n, p_0.1 , p_0.25 , p_0.5 , p_0.75 , p_0.9)
+P.data %>% ggplot(aes(n)) +
+  geom_line(aes(y = p_0.1, colour = "p_0.1")) +
+  geom_line(aes(y = p_0.25, colour = "p_0.25")) +
+  geom_line(aes(y = p_0.5, colour = "p_0.5")) +
+  geom_line(aes(y = p_0.75, colour = "p_0.75")) +
+  geom_line(aes(y = p_0.9, colour = "p_0.9")) +
+  ylim(0, 1) + ylab('p_hat')
+```
+
+
+## Question 2.
+```{r}
+p=0.5
+n=c(1:1000)
+p_hat=c()
+sd = c()
+for (i in n) {
+  x = rbinom(1000,i,p)
+  p_hat=c(p_hat,sd(x)/i)
+  sd = c(sd, 0.5/sqrt(n))
+}
+P.data <- data.frame(n, p_hat, p_hat, sd)
+P.data %>% 
+  ggplot(aes(x=n)) +  
+  geom_line(aes(y=p_hat, colour = 'p_hat')) + 
+  geom_line(aes(y=sd, colour = 'sd'))
+```
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
