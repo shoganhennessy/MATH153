@@ -82,18 +82,53 @@ P.data %>% ggplot(aes(n)) +
 ```{r}
 p=0.5
 n=c(1:1000)
-p_hat=c()
+sd_hat=c()
 sd = c()
 for (i in n) {
   x = rbinom(1000,i,p)
-  p_hat=c(p_hat,sd(x)/i)
-  sd = c(sd, 0.5/sqrt(n))
+  sd_hat=c(sd_hat,sd(x)/i)
+  sd = c(sd, p/sqrt(n))
 }
-P.data <- data.frame(n, p_hat, p_hat, sd)
+P.data <- data.frame(n, sd_hat, sd)
 P.data %>% 
   ggplot(aes(x=n)) +  
-  geom_line(aes(y=p_hat, colour = 'p_hat')) + 
+  geom_line(aes(y=sd_hat, colour = 'sd_hat')) + 
   geom_line(aes(y=sd, colour = 'sd'))
 ```
 
 ## Question 3.
+```{r}
+#Initialise vectors for table output
+Observations <- p_value <- Bayesian <- MLE <- c()
+#First p-value
+for (p in c(1:10)/10){
+  n <- 10
+  p_hatb <- p_hat <- c()
+  for (i in c(1:10000)){
+    x_i <- rbinom(n, 1, p)
+    p_hatb <- c((sum(x_i)+10)/(n+20), p_hatb) 
+    p_hat <- c(mean(x_i), p_hat)
+  }
+  Observations <- c(n, Observations)
+  p_value <- c(p, p_value)
+  Bayesian <- c(mean((p_hatb - p)^2), Bayesian)
+  MLE <- c(mean((p_hat - p)^2), MLE)
+  #second n value
+  n <- 100
+  p_hatb <- p_hat <- c()
+  for (i in c(1:10000)){
+    x_i <- rbinom(n, 1, p)
+    p_hatb <- c((sum(x_i)+10)/(n+20), p_hatb) 
+    p_hat <- c(mean(x_i), p_hat)
+  }
+  Observations <- c(n, Observations)
+  p_value <- c(p, p_value)
+  Bayesian <- c(mean((p_hatb - p)^2), Bayesian)
+  MLE <- c(mean((p_hat - p)^2), MLE)
+}
+P.data <- data.frame(p_value, Observations, Bayesian, MLE)
+tab <- xtable(P.data)
+print(tab, type="latex")
+```
+
+For non-extreme (i.e. close to 0.5) p-values, the Bayesian estimator has a lower variance than does the MLE estimator.
