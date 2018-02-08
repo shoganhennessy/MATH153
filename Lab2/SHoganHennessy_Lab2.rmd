@@ -21,8 +21,8 @@ a.
 
 ```{r}
 x <- 0.2
-# a/(a+b) = 0.1
-vector <- seq(0, 10000, 0.01)
+# a/(a+b) = 0.1, so b = 9a
+vector <- seq(0, 10000, 0.001)
 i <- 1
 a <- vector[i]
 b <- 9*a
@@ -31,27 +31,66 @@ while (abs(pbeta(x,a,b) - 0.9) > 0.001){
   a <- vector[i]
   b <- 9*a
 }
+rm(vector, i)
 a
 b
 pbeta(x,a,b) # roughly = 0.9
 ```
+b. 
 
 ```{r}
-x <- 0.2
-# a/(a+b) = 0.1
-vector <- seq(0, 10000, 0.01)
-i <- 1
-a <- vector[i]
-b <- 9*a
-while (abs(pbeta(x,a,b) - 0.9) > 0.001){
-  i <- i + 1
+ab_finder <- function(mean, x, prob){
+  vector <- seq(0, 100, 0.001)
+  i <- 1
   a <- vector[i]
-  b <- 9*a
+  # a/(a+b) = mean
+  b <- a*(1 - mean)*(1/mean)
+  while (abs(pbeta(x,a,b) - prob) > 0.001){
+    i <- i + 1
+    a <- vector[i]
+    b <- a*(1 - mean)*(1/mean)
+  }
+  rm(vector, i)
+  return(paste('alpha = ', a,', beta =',b))
 }
-a
-b
-pbeta(x,a,b) # roughly = 0.9
+ab_finder(0.1, 0.2, 0.9) # test the function.
 ```
+
+## Question 2.
+
+a.
+```{r}
+# prior for question 1 has a = 1.59, b = 14.3
+a <- 1.587
+b <- 14.283
+# First sample size
+N <- 10000 # how many experiments take place
+nP <- 50
+sampleP <- rbeta(nP, a, b) # accurate prior
+
+nX <- c(2, 10, 50, 200, 1000) # amount of Bernoulli trials in different experiments
+
+results <- matrix(nrow=length(nX)*nP, ncol=3)
+for (i in c(1:nP)){
+  for (n in nX){
+    x <- rbinom(1, n, sampleP[i])
+    MSE <- (sampleP[i]-(x/n))^2
+    results[i][1] <- MSE
+    results[i][2] <- a/(a+b)
+    results[i][3] <- n
+  }
+}
+results
+
+
+```
+
+
+
+
+
+
+
 
 
 $$ E[ \hat{p} ]= E[\frac{\sum_{i=1}^n X_i}{n}]=\frac{1}{n}\sum_{i=1}^n X_i=\frac{1}{n}pn=p$$.
