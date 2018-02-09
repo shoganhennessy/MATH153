@@ -18,7 +18,9 @@ set.seed(47)
 ## Question 1.
 
 a.
+Need $\frac{\alpha}{\alpha+\beta} = .1$, so $9\alpha = \beta$.
 
+$\Rightarrow$ want $pbeta(.2, \alpha, \beta) = .9$.
 ```{r}
 x <- 0.2
 # a/(a+b) = 0.1, so b = 9a
@@ -37,7 +39,9 @@ b
 pbeta(x,a,b) # roughly = 0.9
 ```
 b. 
+Need $\frac{\alpha}{\alpha+\beta} = mean$, so $\frac{\alpha (1- mean)}{mean} = \beta$.
 
+$\Rightarrow$ want $pbeta(x, \alpha, \beta) = prob$.
 ```{r}
 ab_finder <- function(mean, x, prob){
   vector <- seq(0, 100, 0.001)
@@ -51,7 +55,7 @@ ab_finder <- function(mean, x, prob){
     b <- a*(1 - mean)*(1/mean)
   }
   rm(vector, i)
-  return(paste('alpha = ', a,', beta =',b))
+  return(c(a,b))
 }
 ab_finder(0.1, 0.2, 0.9) # test the function.
 ```
@@ -59,370 +63,123 @@ ab_finder(0.1, 0.2, 0.9) # test the function.
 ## Question 2.
 
 a.
-```{r}
-# prior for question 1 has a = 1.59, b = 14.3
-a <- 1.587
-b <- 14.283
-# First sample size
-N <- 10000 # how many experiments take place
-nP <- 50
-sampleP <- rbeta(nP, a, b) # accurate prior
+```{r, fig.height = 3, fig.width = 6.5, fig.align='center'}
+# Prior for p is beta (1.59, 14.31)\
+alpha = 1.59
+beta = 14.31
+nP = 100 # Number of p's
+nX = c(2, 4, 8, 15, 20, 35, 70, 100, 250) #Vector of sample sizes for the binomial experiments
+sampleP = rbeta(nP, alpha, beta)
+resultsMSE = matrix(nrow = (nP*length(nX)), ncol = 4)
+colnames(resultsMSE) = c("mse_bayes", "mse_mle", "p", "n")
+resultsMAE = matrix(nrow = (nP*length(nX)), ncol = 5)
+colnames(resultsMAE) = c("mae_bayes_median", "mae_bayes_mean", "mae_mle", "p", "n")
 
-nX <- c(2, 10, 50, 200, 1000) # amount of Bernoulli trials in different experiments
-
-results <- matrix(nrow=length(nX)*nP, ncol=3)
-for (i in c(1:nP)){
-  for (n in nX){
-    x <- rbinom(1, n, sampleP[i])
-    MSE <- (sampleP[i]-(x/n))^2
-    results[i][1] <- MSE
-    results[i][2] <- a/(a+b)
-    results[i][3] <- n
+j=1
+for(i in 1:nP){
+  for(n in nX){
+    x = rbinom(1, n, sampleP[i])
+    mse_mle = (sampleP[i]-x/n)^2
+    mse_bayes = (sampleP[i]-(alpha+x)/(alpha+n+beta))^2
+    mae_mle = abs(sampleP[i]-x/n)
+    mae_bayes_mean = abs(sampleP[i]-(alpha+x)/(alpha+n+beta))
+    mae_bayes_med = abs(sampleP[i]-(alpha+x-1/3)/(alpha+n+beta-2/3))
+    resultsMSE[j,] = c(mae_bayes_mean, mae_mle, sampleP[i], n)
+    resultsMAE[j,] = c(mae_bayes_med, mae_bayes_mean, mae_mle, sampleP[i], n)
+    j=j+1
   }
 }
-results
 
+bayesMeans_bySampleSize = c()
+freqMeans_bySampleSize = c()
+for(i in 1:length(nX)){
+  bayesMeans_bySampleSize[i] = mean(resultsMSE[which(resultsMSE[,4]==nX[i]),1])
+  freqMeans_bySampleSize[i] = mean(resultsMSE[which(resultsMSE[,4]==nX[i]),2])
+}
 
+sortedP = sort(sampleP)
+bayesMeans_byP = c()
+freqMeans_byP = c()
+for(i in 1:length(sortedP)){
+  bayesMeans_byP[i] = mean(resultsMSE[which(resultsMSE[,3]==sortedP[i]),1])
+  freqMeans_byP[i] = mean(resultsMSE[which(resultsMSE[,3]==sortedP[i]),2])
+}
+
+plot(bayesMeans_bySampleSize~nX, main = "Bayes MSE with Growing Sample Size", xlab = "Sample Size", ylab = "MSE", col = 'red', type = 'l')
+lines(freqMeans_bySampleSize~nX, col = 'green')
+legend("topright", legend=c("Posterior Mean", "MLE"), col=c("red", "green"), lty=1:2, cex=0.8)
+
+plot(bayesMeans_byP~sortedP, main = "MSE with Growing P Value", xlab = "P value", ylab = "MSE", col = 'red', type = 'l')
+lines(freqMeans_byP~sortedP, col = 'green')
+legend("topright", legend=c("Posterior Mean", "MLE"), col=c("red", "green"), lty=1:2, cex=0.8)
 ```
 
-
-
-
-
-
-
-
-
-$$ E[ \hat{p} ]= E[\frac{\sum_{i=1}^n X_i}{n}]=\frac{1}{n}\sum_{i=1}^n X_i=\frac{1}{n}pn=p$$.
-So that $\hat{p}$ is unbiased in general, and so sample size does not matter for this small-sample property.
-
-b. 
-```{r}
-p_i <- p_0.1 <- p_0.25 <- p_0.5 <- p_0.75 <- p_0.9 <- c() 
-n = c(1:1000) #Vector of sample size to repeat over
-for (i in n) {
-  p_i <- mean(rbinom(1, i, 0.1))/i
-  p_0.1 <- c(p_0.1, p_i)
-}
-for (i in n) {
-  p_i <- mean(rbinom(1, i, 0.25))/i
-  p_0.25 <- c(p_0.25, p_i)
-}
-for (i in n) {
-  p_i <- mean(rbinom(1, i, 0.5))/i
-  p_0.5 <- c(p_0.5, p_i)
-}
-for (i in n) {
-  p_i <- mean(rbinom(1, i, 0.75))/i
-  p_0.75 <- c(p_0.75, p_i)
-}
-for (i in n) {
-  p_i <- mean(rbinom(1, i, 0.9))/i
-  p_0.9 <- c(p_0.9, p_i)
+b.
+```{r, fig.height = 3, fig.width = 6.5, fig.align='center'}
+bayesMeansMAE_bySampleSize = c()
+bayesMedsMAE_bySampleSize = c()
+freqMeansMAE_bySampleSize = c()
+for(i in 1:length(nX)){
+  bayesMedsMAE_bySampleSize[i] = mean(resultsMAE[which(resultsMAE[,5]==nX[i]),1])
+  bayesMeansMAE_bySampleSize[i] = mean(resultsMAE[which(resultsMAE[,5]==nX[i]),2])
+  freqMeansMAE_bySampleSize[i] = mean(resultsMAE[which(resultsMAE[,5]==nX[i]),3])
 }
 
-P.data <- data.frame(n, p_0.1 , p_0.25 , p_0.5 , p_0.75 , p_0.9)
-P.data %>% ggplot(aes(n)) +
-  geom_line(aes(y = p_0.1, colour = "p = 0.1")) +
-  geom_line(aes(y = p_0.25, colour = "p = 0.25")) +
-  geom_line(aes(y = p_0.5, colour = "p = 0.5")) +
-  geom_line(aes(y = p_0.75, colour = "p = 0.75")) +
-  geom_line(aes(y = p_0.9, colour = "p = 0.9")) +
-  ylim(0, 1) + ylab('p hat')
-```
-
-
-## Question 2.
-
-First part.
-```{r}
-p=0.25
-n=200
-p_hat_25=c()
-for (i in 1: n) {
-x = rbinom(1000,i,p)
-p_hat_25=c(p_hat_25,sd(x)/i)}
-
-p=0.5
-n=200
-p_hat_5=c()
-for (i in 1: n) {
-x = rbinom(1000,i,p)
-p_hat_5=c(p_hat_5,sd(x)/i)}
-
-
-p=0.75
-n=200
-p_hat_75=c()
-for (i in 1: n) {
-x = rbinom(1000,i,p)
-p_hat_75=c(p_hat_75,sd(x)/i)}
-
-
-n=200
-root=c()
-for (i in 1:n){
-x=1/sqrt(i)
-root=c(root,x)}
-
-
-P.data <- data.frame(1:n, p_hat_25 , p_hat_5 , p_hat_75 , root)
-P.data %>% ggplot(aes(1:n)) +
-  geom_line(aes(y = p_hat_25, colour = "p = 0.25")) +
-  geom_line(aes(y = p_hat_5, colour = "p = 0.5")) +
-  geom_line(aes(y = p_hat_75, colour = "p = 0.75")) +
-  geom_line(aes(y = root, colour = "1/sqrt(n)")) +
-  ylim(0, 1) + ylab('standard deviation of p_hat') + xlab('Sample Size, n')
-```
-
-Second Part.
-```{r}
-p <- 0.02  
-n <- 200
-cornorm_02 <- c()
-for (i in 1 : n) {
-  p_hat <- rbinom(1000,i,p)/i
-  b <- qqnorm(p_hat, plot.it=FALSE)
-  cornorm_02[i] <- cor(b$x,b$y)
+bayesMedsMAE_byP = c()
+bayesMeansMAE_byP = c()
+freqMeansMAE_byP = c()
+for(i in 1:length(sortedP)){
+  bayesMedsMAE_byP[i] = mean(resultsMAE[which(resultsMAE[,4]==sortedP[i]),1])
+  bayesMeansMAE_byP[i] = mean(resultsMAE[which(resultsMAE[,4]==sortedP[i]),2])
+  freqMeansMAE_byP[i] = mean(resultsMAE[which(resultsMAE[,4]==sortedP[i]),3])
 }
 
-p <- 0.25  
-n <- 200
-cornorm_25 <- c()
-for (i in 1 : n) {
-  p_hat <- rbinom(1000,i,p)/i
-  b <- qqnorm(p_hat, plot.it=FALSE)
-  cornorm_25[i] <- cor(b$x,b$y)
-}
+plot(bayesMeansMAE_bySampleSize~nX, main = "Bayes MAE with Growing Sample Size", xlab = "Sample Size", ylab = "MAE", col = 'red', type = 'l')
+lines(freqMeansMAE_bySampleSize~nX, col = 'green')
+lines(bayesMedsMAE_bySampleSize~nX, col = 'blue')
+legend("topright", legend=c("Posterior Mean", "MLE", "Posterior Median"), col=c("red", "green", "blue"), lty=1:2, cex=0.8)
 
-p <- 0.5  
-n <- 200
-cornorm_5 <- c()
-for (i in 1 : n) {
-  p_hat <- rbinom(1000,i,p)/i
-  b <- qqnorm(p_hat, plot.it=FALSE)
-  cornorm_5[i] <- cor(b$x,b$y)
-}
-
-
-p <- 0.75  
-n <- 200
-cornorm_75 <- c()
-for (i in 1 : n) {
-  p_hat <- rbinom(1000,i,p)/i
-  b <- qqnorm(p_hat, plot.it=FALSE)
-  cornorm_75[i] <- cor(b$x,b$y)
-}
-
-p <- 0.98  
-n <- 200
-cornorm_98 <- c()
-for (i in 1 : n) {
-  p_hat <- rbinom(1000,i,p)/i
-  b <- qqnorm(p_hat, plot.it=FALSE)
-  cornorm_98[i] <- cor(b$x,b$y)
-}
-
-P.data <- data.frame(1:n, cornorm_02 , cornorm_25 , cornorm_5 , cornorm_75, cornorm_98)
-P.data %>% ggplot(aes(1:n)) +
-  geom_line(aes(y = cornorm_02, colour = "p = 0.02")) +
-  geom_line(aes(y = cornorm_25, colour = "p = 0.25")) +
-  geom_line(aes(y = cornorm_5, colour = "p = 0.5")) +
-  geom_line(aes(y = cornorm_75, colour = "p = 0.75")) +
-  geom_line(aes(y = cornorm_98, colour = "p = 0.98")) +
-  ylim(0, 1) + ylab('correlation with normal') + xlab('Sample Size, n')
+plot(bayesMeansMAE_byP~sortedP, main = "MAE with Growing P Value", xlab = "P value", ylab = "MAE", col = 'red', type = 'l')
+lines(freqMeansMAE_byP~sortedP, col = 'green')
+lines(bayesMedsMAE_byP~sortedP, col = 'blue')
+legend("bottomright", legend=c("Posterior Mean", "MLE", "Posterior Median"), col=c("red", "green", "blue"), lty=1:2, cex=0.8)
+rm(list = ls())
 ```
 
 ## Question 3.
+
+a.
+Start with an informative prior, as outlined in question 1 for $p=0.1$.
 ```{r, fig.height = 3, fig.width = 6.5, fig.align='center'}
-#First p-value
-p = 0.1
+p <- 0.1
+alpha <- ab_finder(0.1, 0.2, 0.9)[1] 
+beta <- ab_finder(0.1, 0.2, 0.9)[2]
 
-#first n value
-n <- 10
-p_hatb_10 <- p_hat_10 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_10 <- c((sum(x_i)+10)/(n+20), p_hatb_10) 
-  p_hat_10 <- c(mean(x_i), p_hat_10)
+x <- rbeta(10, alpha, beta)
+x_1<- rbeta(10, alpha + mean(x), beta + length(x) - mean(x))
+x <- rbeta(100, alpha, beta)
+x_2<- rbeta(100, alpha + mean(x), beta + length(x) - mean(x))
+x <- rbeta(1000, alpha, beta)
+x_3<- rbeta(1000, alpha + mean(x), beta + length(x) - mean(x))
+
+plot.multi.dens <- function(s)
+{
+    junk.x = NULL
+    junk.y = NULL
+    for(i in 1:length(s)) {
+        junk.x = c(junk.x, density(s[[i]])$x)
+        junk.y = c(junk.y, density(s[[i]])$y)
+    }
+    xr <- range(junk.x)
+    yr <- range(junk.y)
+    plot(density(s[[1]]), xlim = xr, ylim = yr, main = "")
+    for(i in 1:length(s)) {
+        lines(density(s[[i]]), xlim = xr, ylim = yr, col = i)
+    }
 }
-# second n value
-n <- 100
-p_hatb_100 <- p_hat_100 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_100 <- c((sum(x_i)+10)/(n+20), p_hatb_100) 
-  p_hat_100 <- c(mean(x_i), p_hat_100)
-}
-p_hatb_10 <- (p_hatb_10 - p)^2
-p_hat_10 <- (p_hat_10 - p)^2
-p_hatb_100 <- (p_hatb_100 - p)^2
-p_hat_100 <- (p_hatb_100 - p)^2
 
-P.data <- data.frame(p_hatb_10, p_hat_10, p_hatb_100, p_hat_100) 
+# the input of the following function MUST be a numeric list
+plot.multi.dens( list(x_1, x_2))
 
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian", aes(p_hat_10, colour= 'MLE Estimator, n = 10')) +
-  geom_density(kernel = "gaussian", aes(p_hatb_10, colour= 'Bayesian Estimator, n = 10')) +
-  labs(title = "Transformed Estimator Given p = 0.1, n = 10", x = "Estimator") 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian",aes(p_hat_100, colour= 'MLE Estimator, n = 100')) +
-  geom_density(kernel = "gaussian",aes(p_hatb_100, colour= 'Bayesian Estimator, n = 100')) +
-  labs(title = "Transformed Estimator Given p = 0.1, n = 100", x = "Estimator") 
 ```
 
-The above produces some frequency plots for the corresponding Bayesian and MLE estimaotrs under sample size $10$ and $100$, for $p = 0.1$.  Below are some more plots made in identical manner for $p = 0.25, 0.5, 0.75, 0.9$.
-
-```{r, echo = FALSE, fig.height = 3, fig.width = 6.5, fig.align='center'}
-# Next p-value
-p = 0.25
-
-#first n value
-n <- 10
-p_hatb_10 <- p_hat_10 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_10 <- c((sum(x_i)+10)/(n+20), p_hatb_10) 
-  p_hat_10 <- c(mean(x_i), p_hat_10)
-}
-# second n value
-n <- 100
-p_hatb_100 <- p_hat_100 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_100 <- c((sum(x_i)+10)/(n+20), p_hatb_100) 
-  p_hat_100 <- c(mean(x_i), p_hat_100)
-}
-p_hatb_10 <- (p_hatb_10 - p)^2
-p_hat_10 <- (p_hat_10 - p)^2
-p_hatb_100 <- (p_hatb_100 - p)^2
-p_hat_100 <- (p_hatb_100 - p)^2
-
-P.data <- data.frame(p_hatb_10, p_hat_10, p_hatb_100, p_hat_100) 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian", aes(p_hat_10, colour= 'MLE Estimator, n = 10')) +
-  geom_density(kernel = "gaussian", aes(p_hatb_10, colour= 'Bayesian Estimator, n = 10')) +
-  labs(title = "Transformed Estimator Given p = 0.25, n = 10", x = "Estimator") 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian",aes(p_hat_100, colour= 'MLE Estimator, n = 100')) +
-  geom_density(kernel = "gaussian",aes(p_hatb_100, colour= 'Bayesian Estimator, n = 100')) +
-  labs(title = "Transformed Estimator Given p = 0.25, n = 100", x = "Estimator") 
-```
-
-```{r, echo = FALSE, fig.height = 3, fig.width = 6.5, fig.align='center'}
-# Next p-value
-p = 0.5
-
-#first n value
-n <- 10
-p_hatb_10 <- p_hat_10 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_10 <- c((sum(x_i)+10)/(n+20), p_hatb_10) 
-  p_hat_10 <- c(mean(x_i), p_hat_10)
-}
-# second n value
-n <- 100
-p_hatb_100 <- p_hat_100 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_100 <- c((sum(x_i)+10)/(n+20), p_hatb_100) 
-  p_hat_100 <- c(mean(x_i), p_hat_100)
-}
-p_hatb_10 <- (p_hatb_10 - p)^2
-p_hat_10 <- (p_hat_10 - p)^2
-p_hatb_100 <- (p_hatb_100 - p)^2
-p_hat_100 <- (p_hatb_100 - p)^2
-
-P.data <- data.frame(p_hatb_10, p_hat_10, p_hatb_100, p_hat_100) 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian", aes(p_hat_10, colour= 'MLE Estimator, n = 10')) +
-  geom_density(kernel = "gaussian", aes(p_hatb_10, colour= 'Bayesian Estimator, n = 10')) +
-  labs(title = "Transformed Estimator Given p = 0.5, n = 10", x = "Estimator") 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian",aes(p_hat_100, colour= 'MLE Estimator, n = 100')) +
-  geom_density(kernel = "gaussian",aes(p_hatb_100, colour= 'Bayesian Estimator, n = 100')) +
-  labs(title = "Transformed Estimator Given p = 0.5, n = 100", x = "Estimator") 
-```
-
-```{r, echo = FALSE, fig.height = 3, fig.width = 6.5, fig.align='center'}
-# Next p-value
-p = 0.75
-
-#first n value
-n <- 10
-p_hatb_10 <- p_hat_10 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_10 <- c((sum(x_i)+10)/(n+20), p_hatb_10) 
-  p_hat_10 <- c(mean(x_i), p_hat_10)
-}
-# second n value
-n <- 100
-p_hatb_100 <- p_hat_100 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_100 <- c((sum(x_i)+10)/(n+20), p_hatb_100) 
-  p_hat_100 <- c(mean(x_i), p_hat_100)
-}
-p_hatb_10 <- (p_hatb_10 - p)^2
-p_hat_10 <- (p_hat_10 - p)^2
-p_hatb_100 <- (p_hatb_100 - p)^2
-p_hat_100 <- (p_hatb_100 - p)^2
-
-P.data <- data.frame(p_hatb_10, p_hat_10, p_hatb_100, p_hat_100) 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian", aes(p_hat_10, colour= 'MLE Estimator, n = 10')) +
-  geom_density(kernel = "gaussian", aes(p_hatb_10, colour= 'Bayesian Estimator, n = 10')) +
-  labs(title = "Transformed Estimator Given p = 0.75, n = 10", x = "Estimator") 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian",aes(p_hat_100, colour= 'MLE Estimator, n = 100')) +
-  geom_density(kernel = "gaussian",aes(p_hatb_100, colour= 'Bayesian Estimator, n = 100')) +
-  labs(title = "Transformed Estimator Given p = 0.75, n = 100", x = "Estimator") 
-```
-
-```{r, echo = FALSE, fig.height = 3, fig.width = 6.5, fig.align='center'}
-# Next p-value
-p = 0.9
-
-#first n value
-n <- 10
-p_hatb_10 <- p_hat_10 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_10 <- c((sum(x_i)+10)/(n+20), p_hatb_10) 
-  p_hat_10 <- c(mean(x_i), p_hat_10)
-}
-# second n value
-n <- 100
-p_hatb_100 <- p_hat_100 <- c()
-for (i in c(1:10000)){
-  x_i <- rbinom(n, 1, p)
-  p_hatb_100 <- c((sum(x_i)+10)/(n+20), p_hatb_100) 
-  p_hat_100 <- c(mean(x_i), p_hat_100)
-}
-p_hatb_10 <- (p_hatb_10 - p)^2
-p_hat_10 <- (p_hat_10 - p)^2
-p_hatb_100 <- (p_hatb_100 - p)^2
-p_hat_100 <- (p_hatb_100 - p)^2
-
-P.data <- data.frame(p_hatb_10, p_hat_10, p_hatb_100, p_hat_100) 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian", aes(p_hat_10, colour= 'MLE Estimator, n = 10')) +
-  geom_density(kernel = "gaussian", aes(p_hatb_10, colour= 'Bayesian Estimator, n = 10')) +
-  labs(title = "Transformed Estimator Given p = 0.9, n = 10", x = "Estimator") 
-
-P.data %>% ggplot() + xlim(0, 1) +
-  geom_density(kernel = "gaussian",aes(p_hat_100, colour= 'MLE Estimator, n = 100')) +
-  geom_density(kernel = "gaussian",aes(p_hatb_100, colour= 'Bayesian Estimator, n = 100')) +
-  labs(title = "Transformed Estimator Given p = 0.9, n = 100", x = "Estimator") 
-```
-The Bayesian estimator outperforms the MLE estimator in terms of the transformation as p gets larger (towards 1), and as sample size grows.
