@@ -1,7 +1,7 @@
 ---
-title: "MATH153, Lab 1"
+title: "MATH153, Lab 2"
 author: "Senan Hogan-H."
-date: "8 February 2018"
+date: "15 February 2018"
 output: pdf_document
 ---
 
@@ -14,6 +14,8 @@ options(digits=4)
 require(tidyverse)
 set.seed(47)
 ```
+
+Completed with Jame Kinney.  Work was about 50-50 in completion.
 
 ## Question 1.
 
@@ -28,7 +30,8 @@ vector <- seq(0, 10000, 0.001)
 i <- 1
 a <- vector[i]
 b <- 9*a
-while (abs(pbeta(x,a,b) - 0.9) > 0.001){
+epsilson <- 0.0001
+while (abs(pbeta(x,a,b) - 0.9) > epsilson){
   i <- i + 1
   a <- vector[i]
   b <- 9*a
@@ -143,43 +146,68 @@ plot(bayesMeansMAE_byP~sortedP, main = "MAE with Growing P Value", xlab = "P val
 lines(freqMeansMAE_byP~sortedP, col = 'green')
 lines(bayesMedsMAE_byP~sortedP, col = 'blue')
 legend("bottomright", legend=c("Posterior Mean", "MLE", "Posterior Median"), col=c("red", "green", "blue"), lty=1:2, cex=0.8)
-rm(list = ls())
 ```
 
 ## Question 3.
 
 a.
-Start with an informative prior, as outlined in question 1 for $p=0.1$.
-```{r, fig.height = 3, fig.width = 6.5, fig.align='center'}
+Start with an informative and good prior, as outlined in question 1 for binomial of $p=0.1$.  In this example suppose that the correct estimate is $p=0.1$ (thus we have a good prior), so that $\frac{1}{n}\sum_{i=1}^n X_i=\frac{X}{n}=0.1$ for the (fixed) MLE estimator.
+```{r, fig.height = 4, fig.width = 8, fig.align='center'}
 p <- 0.1
 alpha <- ab_finder(0.1, 0.2, 0.9)[1] 
 beta <- ab_finder(0.1, 0.2, 0.9)[2]
 
-x <- rbeta(10, alpha, beta)
-x_1<- rbeta(10, alpha + mean(x), beta + length(x) - mean(x))
-x <- rbeta(100, alpha, beta)
-x_2<- rbeta(100, alpha + mean(x), beta + length(x) - mean(x))
-x <- rbeta(1000, alpha, beta)
-x_3<- rbeta(1000, alpha + mean(x), beta + length(x) - mean(x))
+prob <- seq(0,1,.01)
+# First 
+x_0 <- dbeta(prob, alpha, beta)
 
-plot.multi.dens <- function(s)
-{
-    junk.x = NULL
-    junk.y = NULL
-    for(i in 1:length(s)) {
-        junk.x = c(junk.x, density(s[[i]])$x)
-        junk.y = c(junk.y, density(s[[i]])$y)
-    }
-    xr <- range(junk.x)
-    yr <- range(junk.y)
-    plot(density(s[[1]]), xlim = xr, ylim = yr, main = "")
-    for(i in 1:length(s)) {
-        lines(density(s[[i]]), xlim = xr, ylim = yr, col = i)
-    }
-}
+# Update with data sample of 10
+n <- 10
+x <- p*n
+x_10 <- dbeta(prob, alpha + x, beta + n - x)
 
-# the input of the following function MUST be a numeric list
-plot.multi.dens( list(x_1, x_2))
+# Update with another data sample of 100
+n <- 100
+x <- p*n
+x_100 <- dbeta(prob, alpha + x, beta + n - x)
 
+data.frame(x_0, x_10, x_100, prob) %>% ggplot(aes(x= prob)) +
+  geom_line(aes(y= x_0, colour = 'Prior Distribution')) +
+  geom_line(aes(y= x_10, colour = 'Posterior Distrubtion after n=10 sample')) +
+  geom_line(aes(y= x_100, colour = 'Posterior Distrubtion after n=110 sample')) +
+  labs(title = "Density for Binomial, p=0.1, Updated with two Samples",
+       x = "p", y = "Density")
+```
+The prior distribution is centred around the correct value for p, and is a good estimate for the distribution of $\hat{p}$.  Updating ths distribution with data samples focus the distribution around the correct value, increasing density for the correct value even further.
+
+b.
+Start with an informative yet bad prior, as outlined in question 1 for binomial of $p=0.1$.  In this example suppose that the correct estimate is however $p=0.5$, so that $\frac{1}{n}\sum_{i=1}^n X_i=\frac{X}{n}=0.5$ for the (fixed) MLE estimator.
+```{r, fig.height = 4, fig.width = 8, fig.align='center'}
+p <- 0.5
+alpha <- ab_finder(0.1, 0.2, 0.9)[1] 
+beta <- ab_finder(0.1, 0.2, 0.9)[2]
+
+prob <- seq(0,1,.01)
+# First 
+x_0 <- dbeta(prob, alpha, beta)
+
+# Update with data sample of 10
+n <- 10
+x <- p*n
+x_10 <- dbeta(prob, alpha + x, beta + n - x)
+
+# Update with another data sample of 100
+n <- 100
+x <- p*n
+x_100 <- dbeta(prob, alpha + x, beta + n - x)
+
+data.frame(x_0, x_10, x_100, prob) %>% ggplot(aes(x= prob)) +
+  geom_line(aes(y= x_0, colour = 'Prior Distribution')) +
+  geom_line(aes(y= x_10, colour = 'Posterior Distrubtion after n=10 sample')) +
+  geom_line(aes(y= x_100, colour = 'Posterior Distrubtion after n=110 sample')) +
+  labs(title = "Density for Binomial, p=0.5, Updated with two Samples",
+       x = "p", y = "Density")
+rm(list=ls())
 ```
 
+The prior distribution is centred below 0.1, as our prior estimates $p=0.1$.  However, after observation of great data points, the posterior distribution better fits the \textit{real} distribution of $p=0.5$, so that with greater sample size the distribution shifts from the original estimate to the correct estimate. 
