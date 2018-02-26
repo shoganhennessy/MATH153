@@ -1,0 +1,51 @@
+---
+title: "Lab 3"
+author: "Senan Hogan-H."
+header-includes:
+   - \usepackage{amsmath}
+date: "8 March 2018"
+output: pdf_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+gc()
+ls()
+options(digits=4)
+require(tidyverse)
+set.seed(47)
+```
+
+## Question 1.
+
+a. Define $s^2=\frac{1}{n}\sum(x_i-\bar{x})^2$.
+\begin{multline} \\
+\sum_{i=1}^n(x_i-\mu)^2 = \\
+\sum_{i=1}^n( x_i^2 - 2\mu x_i +\mu^2) = \\
+\sum_{i=1}^n x_i^2 - 2 \mu\sum_{i=1}^nx_i + n \mu^2 = \\
+\sum_{i=1}^n x_i^2 - 2\bar{x}\sum_{i=1}^nx_i + n \bar{x} ^2 + n\bar{x}^2 - 2 \mu\sum_{i=1}^nx_i + n \mu^2 = \\
+\sum_{i=1}^n(x_i^2 -2\bar{x}x_i+\bar{x}^2) + n(\bar{x}^2 - 2\mu\bar{x} + \mu^2) = \\
+\sum_{i=1}^n (x_i-\bar{x})^2  + n(\bar{x}-\mu)^2 = \\
+ns^2 + n(\bar{x}-\mu)^2 \\
+\end{multline}
+
+b. 
+
+c. 
+
+d.
+
+e.
+
+f. 
+
+g.
+
+\vspace{.5in}Consulted the following resource in working on this exercise: \url{https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf}
+
+
+
+
+
