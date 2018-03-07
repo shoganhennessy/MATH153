@@ -26,6 +26,7 @@ a. Define $s^2=\frac{1}{n}\sum(x_i-\bar{x})^2$.
 \sum_{i=1}^n(x_i-\mu)^2 = \\
 \sum_{i=1}^n( x_i^2 - 2\mu x_i +\mu^2) = \\
 \sum_{i=1}^n x_i^2 - 2 \mu\sum_{i=1}^nx_i + n \mu^2 = \\
+\sum_{i=1}^n x_i^2 - 2n \bar{x} ^2 + n \bar{x} ^2 + n\bar{x}^2 - 2 \mu\sum_{i=1}^nx_i + n \mu^2 = \\
 \sum_{i=1}^n x_i^2 - 2\bar{x}\sum_{i=1}^nx_i + n \bar{x} ^2 + n\bar{x}^2 - 2 \mu\sum_{i=1}^nx_i + n \mu^2 = \\
 \sum_{i=1}^n(x_i^2 -2\bar{x}x_i+\bar{x}^2) + n(\bar{x}^2 - 2\mu\bar{x} + \mu^2) = \\
 \sum_{i=1}^n (x_i-\bar{x})^2  + n(\bar{x}-\mu)^2 = \\
@@ -65,28 +66,26 @@ data.frame(x_0, x_10, x_100, prob) %>% ggplot(aes(x= prob)) +
   geom_line(aes(y= x_10, colour = 'Posterior Distrubtion after n=10 sample')) +
   geom_line(aes(y= x_100, colour = 'Posterior Distrubtion after n=100 sample')) +
   labs(title = "Density for Normal, mean of 3, Updated with two Samples",
-       x = "mu", y = "Density")
-rm(list = ls())
+       x = "mu", y = "Density") + theme_classic()
 ```
 
 d.  Use a prior of the form $\mathcal{G}(\alpha_0, \beta_0)$ where $\alpha_0, \beta_0 > 0$ to estimate $\lambda$.
 
 ```{r, fig.height = 4, fig.width = 8, fig.align='center'}
-prob <- seq(0, 10, .01)
+prob <- seq(0, 5, .01)
 
 alpha_0 <- 1
 beta_0 <- 1
 x_0 <- dgamma(prob, alpha_0, beta_0)
 
-data.frame(x_0, prob) %>% ggplot(aes(x = prob)) +
+data.frame(x_0, prob) %>% 
+  ggplot(aes(x = prob)) +
   geom_line(aes(y = x_0, colour = 'alpha = beta = 1')) +
-  labs(title = "Various Gamma Distributions, Used as Prior for Lamda",
-       x = "lambda", y = "Density")
-rm(list = ls())
+  labs(title = "Various Gamma Distributions, Used as Prior for Lambda",
+       x = "Lambda", y = "Density")
 ```
 
-e. THIS QUESTION IS ACTUALLY NOT POSSIBLE WITH GIVEN PRIOR.
-
+e. THIS QUESTION IS ACTUALLY NOT POSSIBLE WITH GIVEN PRIOR.  CHANGE PROBABILITY TO 0.95.
 
 For the prior, want $\sigma^2=4$, $P(\sigma^2 > 2 )=0.95$.
 
