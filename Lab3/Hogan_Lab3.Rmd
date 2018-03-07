@@ -138,8 +138,3 @@ Normal_estimator <- function (x, alpha_0, beta_0){
 g.
 
 \vspace{.5in}Consulted the following resource in working on this exercise: \url{https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf}
-
-
-
-
-
