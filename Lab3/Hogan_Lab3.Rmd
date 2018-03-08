@@ -115,42 +115,55 @@ pgamma(x, alpha_0, beta_0) # roughly = 0.05
 
 f. 
 ```{r}
-# test data
-x.data <- rnorm(10000, 0, 1) 
+Normal_estimator <- function(x.data, mu_0, kappa_0, alpha_0, beta_0){
+  # returning posterior mean for mu.  First define the prior hyperparameters.
+  n <- length(x.data)
+  x_bar <- mean(x.data)
+  s <- sd(x.data)
 
-# test hyperparameters
-prior_parameters <- c(1, 1, 1, 1)
+  # Then define some posterior hyperparameters.
+  mu_n <- (kappa_0*mu_0 + n*x_bar)/(kappa_0 + n)
+  kappa_n <- kappa_0 + n
+  alpha_n <- alpha_0 + n/2
+  beta_n <- beta_0 + (n/2)*s^2 + (kappa_0*n*(x_bar - mu_0)^2)/(2*(kappa_0 + n))
 
+  # Sample from posterior for lambda_star
+  lambda.data <- c()
+  for (i in c(1:10000)){
+    lambda.data <- c(lambda.data,
+                 rgamma(1, alpha_n, beta_n))
+  }
+  lambda_star <- mean(lambda.data)
 
-# returning posterior mean for mu.  First define the prior hyperparameters.
-n <- length(x.data)
-x_bar <- mean(x.data)
-s <- sd(x.data)
-mu_0 <- prior_parameters[1]
-kappa_0 <- prior_parameters[2]
-alpha_0 <- prior_parameters[3]
-beta_0 <- prior_parameters[4]
+  # sample fron posterior for mu_star
+  mu.data <- c()
+  for (i in c(1:10000)){
+    mu.data <- c(mu.data,
+                 rnorm(1, mu_n, kappa_n*lambda.data[i]))
+  }
 
-# Then define some posterior hyperparameters.
-mu_n <- (kappa_0*mu_0 + n*x_bar)/(kappa_0 + n)
-kappa_n <- kappa_0 + n
-alpha_n <- alpha_0 + n/2
-beta_n <- beta_0 + (n/2)*s^2 + (kappa_0*n*(x_bar - mu_0)^2)/(2*(kappa_0 + n))
+  # posterior mean
+  mu_star <- mean(mu.data)
 
-# Sample from posterior
+  # 95% CI for mu
+  mu_CI <- quantile(mu.data, probs = c(0.025, 0.975))
 
-
-
-
-# function that will be defined.
-Normal_estimator <- function (x, alpha_0, beta_0){
-  
-  return(mean(x))
+  # 95% CI for new observation
+  new.data <- rnorm(10000, mu_star, (kappa_0 + 10000)*lambda_star )
+  new_CI <- quantile(new.data, probs = c(0.025, 0.975))
+  return(list(mu_star, mu_CI, new_CI))
 }
 
+data <- rnorm(10, 12, 1)
+Normal_estimator(data , 12, 1, 6, 4)
 
 ```
 
 g.
+```{r}
+data(mtcars)
+```
+
+
 
 \vspace{.5in}Consulted the following resource in working on this exercise: \url{https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf}
