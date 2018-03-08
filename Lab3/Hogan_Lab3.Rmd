@@ -139,7 +139,7 @@ Normal_estimator <- function(x.data, mu_0, kappa_0, alpha_0, beta_0){
   mu.data <- c()
   for (i in c(1:10000)){
     mu.data <- c(mu.data,
-                 rnorm(1, mu_n, kappa_n*lambda.data[i]))
+                 rnorm(1, mu_n, (kappa_n*lambda.data[i])))
   }
 
   # posterior mean
@@ -149,7 +149,8 @@ Normal_estimator <- function(x.data, mu_0, kappa_0, alpha_0, beta_0){
   mu_CI <- quantile(mu.data, probs = c(0.025, 0.975))
 
   # 95% CI for new observation
-  new.data <- rnorm(10000, mu_star, (kappa_0 + 10000)*lambda_star )
+  N <- 100
+  new.data <- rnorm(N, mu_star, ((kappa_0 + N)*lambda_star ))
   new_CI <- quantile(new.data, probs = c(0.025, 0.975))
   return(list(mu_star, mu_CI, new_CI))
 }
@@ -162,6 +163,13 @@ Normal_estimator(data , 12, 1, 6, 4)
 g.
 ```{r}
 data(mtcars)
+mpg = mtcars[,1]
+missingObs = sample(seq(1,32,1), 1)
+mpg_minus = mpg[-missingObs]
+missing = mpg[missingObs]
+estimateMPG = Normal_estimator(mpg_minus, 20, 1, 30, 30)
+estimateMPG[3]
+missing
 ```
 
 
