@@ -9,6 +9,8 @@ output: pdf_document
 
 ---
 
+Completed with James Kinney, around 50/50 work completed between us.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(echo = TRUE, fig.align="center")
@@ -33,7 +35,9 @@ a. Define $s^2=\frac{1}{n}\sum(x_i-\bar{x})^2$.
 ns^2 + n(\bar{x}-\mu)^2 \\
 \end{multline}
 
-b. Start with a normal prior, $f(\mu)=\mathcal{N}(\mu_0,\sigma_0^2)$.
+b. $\sigma_n^2 = \frac{1}{\frac{n}{\sigma^2} + \frac{1}{\sigma_0^2}}$ is a convex function of the prior variance and the sample variance, $\sigma_0^2$ and $\frac{\sigma^2}{n}$ respectively. Similarly $\mu_n = \sigma_n^2(\frac{\mu_0}{\sigma_0^2} + \frac{n\bar{x}}{\sigma^2})$ is a convex function of the prior and sample means, $\mu_0$ and $\bar{x}$ respectively. These two values are scaled by their variances.
+
+This is like the beta-binomial conjugate posterior where the posterior parameters $\alpha$ and $\beta$ are convex functions (sums in that case) of the prior and data. In this case, the weight of the posterior variance coming from the sample is based on the sample variance and $n$ with increased weight from larger $n$ and smaller $\sigma^2$. The weight of the posterior mean is also based on $n$ and the prior and sample variances with increased weight going to the distribution (prior or sample) with smaller variance.
 
 c. Start with a normal prior, $f(\mu)=\mathcal{N}(\mu_0,\sigma_0^2)$, where $\mu_0=\sigma_0=1$.  Suppose that the real distribution has a mean and standard deviation of 3, so that $\bar{x}=3$.
 ```{r, fig.height = 4, fig.width = 8, fig.align='center'}
@@ -84,6 +88,33 @@ data.frame(x_0, prob) %>%
   labs(title = "Various Gamma Distributions, Used as Prior for Lambda",
        x = "Lambda", y = "Density")
 ```
+This would say that our best guess of the precision is $0$ and that we believe the probabilty of the precision decreases as $\lambda$ increases. It also says that we are close to positive that $\lambda < 5$.
+
+```{r}
+alpha_0 <- 2
+beta_0 <- 3
+x_0 <- dgamma(prob, alpha_0, beta_0)
+
+data.frame(x_0, prob) %>% 
+  ggplot(aes(x = prob)) +
+  geom_line(aes(y = x_0, colour = 'alpha = 2 beta = 3')) +
+  labs(title = "Various Gamma Distributions, Used as Prior for Lambda",
+       x = "Lambda", y = "Density")
+```
+This says that our best guess of $\lambda$ is close to $\frac{1}{3}$ and we believe it to be within $(0,2)$ with high probability. We also believe that there is probability $0$ of $\lambda = 0$, which seems like a good idea because we don't believe that the variance is infinite.
+
+```{r}
+alpha_0 <- 50
+beta_0 <- 25
+x_0 <- dgamma(prob, alpha_0, beta_0)
+
+data.frame(x_0, prob) %>% 
+  ggplot(aes(x = prob)) +
+  geom_line(aes(y = x_0, colour = 'alpha = 50 beta = 25')) +
+  labs(title = "Various Gamma Distributions, Used as Prior for Lambda",
+       x = "Lambda", y = "Density")
+```
+This prior would suggest that our best guess of $\lambda$ is slightly less than $2$, and we are almost postive that $\lambda \in [1,3]$.
 
 e. THIS QUESTION IS ACTUALLY NOT POSSIBLE WITH GIVEN PRIOR.  CHANGE PROBABILITY TO 0.95.
 
@@ -160,7 +191,24 @@ Normal_estimator(data , 12, 1, 6, 4)
 
 ```
 
-g.
+g. Cars had lower fuel efficiency in 1974. I am guessing the average fuel efficiency is $12$ miles per gallon. I feel like this is a pretty good guess, but I am not so confident that I would rule out $10$ or $14$ miles per gallon. Thus, I want about $95\%$ within $2$ of the mean. This translates to $1.96\sigma = 2 \implies \sigma \approx 1 \implies \sigma^2 = 1$. Again, I'm fairly confident of that variance. Thus I want $\frac{\beta}{\alpha-1} = 1$. Let $\mu_0 = 20$, $\kappa_0 = 1$, $\alpha_0 = 30$, and $\beta_0 = 30$.
+
+First lets plot the $\mathcal{G}(\alpha, \beta)$.
+```{r}
+prob <- seq(0, 7, .01)
+alpha_0 <- 30
+beta_0 <- 30
+x_0 <- dgamma(prob, alpha_0, beta_0)
+
+data.frame(x_0, prob) %>% 
+  ggplot(aes(x = prob)) +
+  geom_line(aes(y = x_0, colour = 'alpha = 30, beta = 30')) +
+  labs(title = "Various Gamma Distributions, Used as Prior for Lambda",
+       x = "Lambda", y = "Density")
+```
+
+This says that we are confident that the precision is less than $\frac{3}{2}$ and greater than $\frac{1}{2}$. This corresponds to $\sigma^2 \in [\frac{2}{3}, 2]$
+
 ```{r}
 data(mtcars)
 mpg = mtcars[,1]
@@ -172,6 +220,6 @@ estimateMPG[3]
 missing
 ```
 
-
+This contains the missing point.
 
 \vspace{.5in}Consulted the following resource in working on this exercise: \url{https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf}
