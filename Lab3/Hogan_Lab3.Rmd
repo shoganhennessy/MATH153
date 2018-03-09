@@ -1,12 +1,13 @@
 ---
 title: "Lab 3"
 author: "Senan Hogan-H."
-header-includes:
-   - \usepackage{amsmath}
-   - \usepackage{hyperref}
 date: "8 March 2018"
-output: pdf_document
-
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+- \usepackage{amsmath}
+- \usepackage{hyperref}
 ---
 
 Completed with James Kinney, around 50/50 work completed between us.
@@ -18,7 +19,7 @@ gc()
 ls()
 options(digits=4)
 require(tidyverse)
-set.seed(47)
+set.seed(4747)
 ```
 
 ## Question 1.
@@ -116,32 +117,32 @@ data.frame(x_0, prob) %>%
 ```
 This prior would suggest that our best guess of $\lambda$ is slightly less than $2$, and we are almost postive that $\lambda \in [1,3]$.
 
-e. THIS QUESTION IS ACTUALLY NOT POSSIBLE WITH GIVEN PRIOR.  CHANGE PROBABILITY TO 0.95.
+e. For the prior, want $\sigma^2 = 4$, $P(\sigma^2 > 2 )=0.9$.
 
-For the prior, want $\sigma^2=4$, $P(\sigma^2 > 2 )=0.95$.
+$\Rightarrow \lambda = \frac{1}{4}$, $P(\lambda < \frac{1}{2} ) = 0.9$.
 
-So that $\frac{\alpha_0 - 1}{\beta_0} = 4$, $pbeta(2, \alpha_0, \beta_0) = 1- 0.95 = 0.05$
+So that $\frac{\alpha_0 - 1}{\beta_0} = 4$, $pbeta( \frac{1}{2}, \alpha_0, \beta_0) = 0.9$.
 ```{r}
-x <- 2
+x <- 1/2
 
-vector <- seq(1, 3, by = 0.00001)
-i <- 1
+vector <- seq(4.97, 5.03, by = 0.0001)
+i <- 2
 
-# (alpha_0 - 1)/beta_0 = 4, so beta_0 = (alpha_0 - 1)/4
+# (alpha_0 - 1)/beta_0 = 1/4, so beta_0 = 4(alpha_0 - 1)
 alpha_0 <- vector[i]
-beta_0 <- (alpha_0 - 1)/4
+beta_0 <- 4*(alpha_0 - 1)
 
 epsilon <- 0.0001
-while (abs(pgamma(x, alpha_0, beta_0) - 0.05) > epsilon){
-  #print(i)
+while (abs(pgamma(x, alpha_0, beta_0) - 0.9) > epsilon){
+  #print(pgamma(x, alpha_0, beta_0))
   i <- i + 1
   alpha_0 <- vector[i]
-  beta_0 <- (alpha_0 - 1)/4
+  beta_0 <- 4*(alpha_0 - 1)
 }
 rm(vector, i)
 alpha_0
 beta_0
-pgamma(x, alpha_0, beta_0) # roughly = 0.05
+pgamma(x, alpha_0, beta_0) # roughly = 0.9
 ```
 
 f. 
@@ -159,30 +160,16 @@ Normal_estimator <- function(x.data, mu_0, kappa_0, alpha_0, beta_0){
   beta_n <- beta_0 + (n/2)*s^2 + (kappa_0*n*(x_bar - mu_0)^2)/(2*(kappa_0 + n))
 
   # Sample from posterior for lambda_star
-  lambda.data <- c()
-  for (i in c(1:10000)){
-    lambda.data <- c(lambda.data,
-                 rgamma(1, alpha_n, beta_n))
-  }
-  lambda_star <- mean(lambda.data)
-
-  # sample fron posterior for mu_star
-  mu.data <- c()
-  for (i in c(1:10000)){
-    mu.data <- c(mu.data,
-                 rnorm(1, mu_n, (kappa_n*lambda.data[i])))
-  }
+  lambda_star <- mean(rgamma(10000, alpha_n, beta_n))
 
   # posterior mean
-  mu_star <- mean(mu.data)
+  mu_star <- mu_n
 
   # 95% CI for mu
-  mu_CI <- quantile(mu.data, probs = c(0.025, 0.975))
+  mu_CI <- qnorm(c(0.025, 0.975), mu_n, 1/sqrt(kappa_n*lambda_star))
 
   # 95% CI for new observation
-  N <- 100
-  new.data <- rnorm(N, mu_star, ((kappa_0 + N)*lambda_star ))
-  new_CI <- quantile(new.data, probs = c(0.025, 0.975))
+  new_CI <- qnorm(c(0.025, 0.975), mu_n, 1/sqrt(lambda_star))
   return(list(mu_star, mu_CI, new_CI))
 }
 
@@ -191,11 +178,11 @@ Normal_estimator(data , 12, 1, 6, 4)
 
 ```
 
-g. Cars had lower fuel efficiency in 1974. I am guessing the average fuel efficiency is $12$ miles per gallon. I feel like this is a pretty good guess, but I am not so confident that I would rule out $10$ or $14$ miles per gallon. Thus, I want about $95\%$ within $2$ of the mean. This translates to $1.96\sigma = 2 \implies \sigma \approx 1 \implies \sigma^2 = 1$. Again, I'm fairly confident of that variance. Thus I want $\frac{\beta}{\alpha-1} = 1$. Let $\mu_0 = 20$, $\kappa_0 = 1$, $\alpha_0 = 30$, and $\beta_0 = 30$.
+g. Cars had lower fuel efficiency in 1974. I am guessing the average fuel efficiency is $12$ miles per gallon. I feel like this is a pretty good guess, but I am not so confident that I would rule out $10$ or $14$ miles per gallon. Thus, I want about $95 \%$ within $2$ of the mean. This translates to $1.96 \sigma = 2 \implies \sigma \approx 1 \implies \sigma^2 = 1$. Again, I'm fairly confident of that variance. Thus I want $\frac{\beta}{\alpha-1} = 1$. Let $\mu_0 = 20$, $\kappa_0 = 1$, $\alpha_0 = 30$, and $\beta_0 = 30$.
 
 First lets plot the $\mathcal{G}(\alpha, \beta)$.
 ```{r}
-prob <- seq(0, 7, .01)
+prob <- seq(0, 3, .01)
 alpha_0 <- 30
 beta_0 <- 30
 x_0 <- dgamma(prob, alpha_0, beta_0)
@@ -220,6 +207,6 @@ estimateMPG[3]
 missing
 ```
 
-This contains the missing point.
+This contains the missing point around 95% of he time.
 
 \vspace{.5in}Consulted the following resource in working on this exercise: \url{https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf}
