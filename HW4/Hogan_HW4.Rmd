@@ -17,7 +17,7 @@ set.seed(47)
 
 ## Question 1.
 
-a. $x<6$.
+a. $3 \geq x$.
 
 b. $$H_0: p\geq .5 \qquad H_1: p < .5$$
 
@@ -33,5 +33,21 @@ frequentist.test$p.value < 0.05
 ```
 Results are significant under frequentist paradiagm, publish away.
 
-c. Suppose now that
+c. Suppose now that the data was distributed according to a negative binomial.
 
+```{r}
+new.test <- pnbinom(12-3, size = 12, prob = 0.5, lower.tail = TRUE)
+new.test
+new.test < 0.05
+```
+Results are not significant under frequentist paradiagm, no publishing will be done today.
+
+d. The ambiguity in data collection methods has made me less confident in frequentist tests of significance.
+
+e. ?
+
+## Question 2.
+
+Let $y|\theta\sim $Pois$(\theta)$ and assume a prior on $\theta$ of Gamma(1,1).
+
+a. 
