@@ -17,7 +17,7 @@ set.seed(47)
 
 ## Question 1.
 
-a. $3 \geq x$.
+a. $3 \geq x$?
 
 b. $$H_0: p\geq .5 \qquad H_1: p < .5$$
 
@@ -50,4 +50,24 @@ e. ?
 
 Let $y|\theta\sim $Pois$(\theta)$ and assume a prior on $\theta$ of Gamma(1,1).
 
-a. 
+a. $$H_0:\theta \leq 1 \qquad H_1:\theta > 1$$.
+
+b. $H_0:\theta=1$ versus $H_1:\theta\neq1$, with $q_0=P(H_0)=0.5$, and $p_1(\theta)=e^{-\theta}$.
+
+## Question 3.
+
+a. $H_0:p = 0.5  \qquad H_1:p > 0.5$.
+
+Via the central limit theorem, reject the null if $\hat{p}>.5 + 1.645 \sqrt{\frac{.25}{n}}$.
+
+
+
+b. Suppose $p|H_0 \sim N(0.5)$
+
+```{r}
+data <- c()
+
+for (i in c(1:1000)){
+  
+}
+```
