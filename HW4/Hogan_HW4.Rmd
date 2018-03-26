@@ -1,1 +1,37 @@
+---
+title: "Homework 4"
+author: "Senan Hogan-H."
+date: "29 March 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+gc()
+ls()
+options(digits=4)
+require(tidyverse)
+set.seed(47)
+```
+
+## Question 1.
+
+a. $x<6$.
+
+b. $$H_0: p\geq .5 \qquad H_1: p < .5$$
+
+Suppose 3 successes out of 12 were observed.
+
+```{r}
+data <- c(rep(1, times = 3), rep(0, times = 9))
+frequentist.test <- t.test(data, alternative = "less", mu = 0.5)
+
+frequentist.test
+frequentist.test$p.value
+frequentist.test$p.value < 0.05
+```
+Results are significant under frequentist paradiagm, publish away.
+
+c. Suppose now that
 
