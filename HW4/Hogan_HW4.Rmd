@@ -58,9 +58,21 @@ b. $H_0:\theta=1$ versus $H_1:\theta\neq1$, with $q_0=P(H_0)=0.5$, and $p_1(\the
 
 a. $H_0:p = 0.5  \qquad H_1:p > 0.5$.
 
-Via the central limit theorem, reject the null if $\hat{p}>.5 + 1.645 \sqrt{\frac{.25}{n}}$.
+Via the central limit theorem, reject the null if $\hat{p}>0.5 + 1.645 \sqrt{\frac{.25}{n}}$.  COnsider the case of a coin with $p=0.501$.
 
+$\hat{p} \sim N(0.501, \sqrt{\frac{0.501(1- 0.501)}{n}})=N(0.501, \sqrt{\frac{0.249999}{n}})= N(0.501, \frac{0.499999}{\sqrt{n}})$.
 
+It follows that $\hat{p}$ is $95\%$ above the value $0.501 - 1.645\frac{0.499999}{\sqrt{n}}$.
+
+If the null is rejected with 95\% certainty, then  $0.501 - 1.645\frac{0.499999}{\sqrt{n}} \geq 0.5 + 1.645 \sqrt{\frac{.25}{n}}.$
+
+$\Rightarrow 0.501 - 0.5 \geq \frac{1.645}{\sqrt{n}}(0.5 + 0.499999)$
+
+$\Rightarrow 0.001 \geq \frac{1.645}{\sqrt{n}}(0.999999)$
+
+$\Rightarrow \sqrt{n} \geq \frac{1.645}{(0.001)(0.999999)}=1645$
+
+$\Rightarrow n \geq 2,706,030$
 
 b. Suppose $p|H_0 \sim N(0.5)$
 
