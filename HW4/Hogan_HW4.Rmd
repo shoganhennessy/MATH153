@@ -31,7 +31,7 @@ frequentist.test
 frequentist.test$p.value
 frequentist.test$p.value < 0.05
 ```
-Results are significant under frequentist paradiagm, publish away.
+Results are significant under frequentist paradigm, publish away.
 
 c. Suppose now that the data was distributed according to a negative binomial.
 
@@ -40,25 +40,59 @@ new.test <- pnbinom(12-3, size = 12, prob = 0.5, lower.tail = TRUE)
 new.test
 new.test < 0.05
 ```
-Results are not significant under frequentist paradiagm, no publishing will be done today.
+Results are not significant under frequentist paradigm, no publishing will be done today.
 
 d. The ambiguity in data collection methods has made me less confident in frequentist tests of significance.
 
-e. ?
+e. Under a Bayesian setting, the likelihood of observing the data given in (b) and (c) change in the same as in a frequentist setting.  This means that (b) will be considered less likely than (c) when a (non-stupid) prior is available, giving the same result as the frequentist setting. 
 
 ## Question 2.
 
-Let $y|\theta\sim $Pois$(\theta)$ and assume a prior on $\theta$ of Gamma(1,1).
+Let $y| \theta \sim$Pois$(\theta)$ and assume a prior on $\theta$ of Gamma(1,1).
 
-a. $$H_0:\theta \leq 1 \qquad H_1:\theta > 1$$.
+a. $$H_0:\theta \leq 1 \qquad H_1:\theta > 1$$
+
+The posterior is given by Gamma($1 + n\bar{Y}, 1 + n$).
+
+Consider the cases $y = 3, 4, 5$ are observed separately in a sample size of 1.
+```{r}
+n <- 1
+
+y <- 3 # data y = 3
+sample <- rgamma(10000, 1 + sum(y)/n, 1 + n) # sample from gamma
+H0 <- length(sample[sample <= 1])
+post_prob_H0 <- H0/length(sample) # How many draws satisfy H0
+post_prob_H0 
+
+y <- 4 # data y = 4
+sample <- rgamma(10000, 1 + sum(y)/n, 1 + n)
+H0 <- length(sample[sample <= 1])
+post_prob_H0 <- H0/length(sample) 
+post_prob_H0 
+
+y <- 5 # data y = 5
+sample <- rgamma(10000, 1 + sum(y)/n, 1 + n)
+H0 <- length(sample[sample <= 1])
+post_prob_H0 <- H0/length(sample) 
+post_prob_H0 
+```
+
 
 b. $H_0:\theta=1$ versus $H_1:\theta\neq1$, with $q_0=P(H_0)=0.5$, and $p_1(\theta)=e^{-\theta}$.
+
+$$P(H_0 | Y=y) = \frac{P(Y=y | H_0)P(H_0)}{P(Y=y)} = $$
+
+$$\frac{P(\theta = 1)P(Y=y| \theta = 1)}{P(\theta = 1)P(Y=y| \theta = 1) + P(\theta \neq 1)P(Y=y| \theta \neq 1)} =$$
+
+$$\frac{P(Y=y| \theta = 1)}{P(Y=y| \theta = 1) + P(Y=y| \theta \neq 1)} =$$
+
+$$\frac{0.5P(Y=y| \theta = 1)}{0.5P(Y=y| \theta = 1) + \int_{\theta>0} e^{-\theta}P(Y=y| \theta \neq 1)d\theta} =$$
 
 ## Question 3.
 
 a. $H_0:p = 0.5  \qquad H_1:p > 0.5$.
 
-Via the central limit theorem, reject the null if $\hat{p}>0.5 + 1.645 \sqrt{\frac{.25}{n}}$.  COnsider the case of a coin with $p=0.501$.
+Via the central limit theorem, reject the null if $\hat{p}>0.5 + 1.645 \sqrt{\frac{.25}{n}}$.  Consider the case of a coin with $p=0.501$.
 
 $\hat{p} \sim N(0.501, \sqrt{\frac{0.501(1- 0.501)}{n}})=N(0.501, \sqrt{\frac{0.249999}{n}})= N(0.501, \frac{0.499999}{\sqrt{n}})$.
 
@@ -79,7 +113,4 @@ b. Suppose $p|H_0 \sim N(0.5)$
 ```{r}
 data <- c()
 
-for (i in c(1:1000)){
-  
-}
 ```
