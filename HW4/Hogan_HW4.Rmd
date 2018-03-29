@@ -86,7 +86,33 @@ $$\frac{P(\theta = 1)P(Y=y| \theta = 1)}{P(\theta = 1)P(Y=y| \theta = 1) + P(\th
 
 $$\frac{P(Y=y| \theta = 1)}{P(Y=y| \theta = 1) + P(Y=y| \theta \neq 1)} =$$
 
-$$\frac{0.5P(Y=y| \theta = 1)}{0.5P(Y=y| \theta = 1) + \int_{\theta>0} e^{-\theta}P(Y=y| \theta \neq 1)d\theta} =$$
+$$\frac{P(Y=y| \theta = 1)}{P(Y=y| \theta = 1) + \int_{\theta>0} e^{-\theta}P(Y=y| \theta \neq 1)d\theta} =$$
+
+$$\frac{P(Y=y| \theta = 1)}{P(Y=y| \theta = 1) + \int_{\theta>0} e^{-\theta}\frac{\theta^{-y}e^{\theta}}{y!}d\theta}= $$
+Since $y| \theta \sim$Pois$(\theta)$.
+
+```{r}
+y <- c() # data to be defined
+likelihood <- function(theta) ((1/factorial(y))*(theta^y)*exp(-2*theta))
+
+y <- 3 # data y = 3
+likelihood_H0 <- pgamma(y, 1, 1, lower.tail = F)
+likelihood_H1 <- integrate(likelihood, 0, Inf)$value
+post_prob_H0 <- likelihood_H0/(likelihood_H0 + likelihood_H1)
+post_prob_H0
+
+y <- 4 # data y = 4
+likelihood_H0 <- pgamma(y, 1, 1, lower.tail = F)
+likelihood_H1 <- integrate(likelihood, 0, Inf)$value
+post_prob_H0 <- likelihood_H0/(likelihood_H0 + likelihood_H1)
+post_prob_H0
+
+y <- 5 # data y = 5
+likelihood_H0 <- pgamma(y, 1, 1, lower.tail = F)
+likelihood_H1 <- integrate(likelihood, 0, Inf)$value
+post_prob_H0 <- likelihood_H0/(likelihood_H0 + likelihood_H1)
+post_prob_H0
+```
 
 ## Question 3.
 
@@ -108,9 +134,44 @@ $\Rightarrow \sqrt{n} \geq \frac{1.645}{(0.001)(0.999999)}=1645$
 
 $\Rightarrow n \geq 2,706,030$
 
-b. Suppose $p|H_0 \sim N(0.5)$
+b. $$H_0:p < 0.55  \qquad H_1:p \geq 0.55$$
+
+Observed data $X=527$ for $n=1000$.
+
+Suppose $p|H_0 \sim N(0.5, 0.2)$, non-stupid prior.
+
+Suppose $p|H_1 \sim Beta(5, 1)$, non-stupid prior assigning little probability below 0.55 (seen in the following code).
+
+$$ BF_{10}= \frac{P(y|H_1)}{P(y|H_0)}= \frac{\int P(y|p)f_1(p)dp}{\int P(y|p)f_0(p)dp}$$
 
 ```{r}
-data <- c()
+pbeta(0.55, 5, 1, lower.tail = F)
 
+n <- 1000
+X <- 527
+p <- 0.5 # define prior H0
+sd <- 0.2 # define prior H0
+alpha <- 5 # define prior H1
+beta <- 1 # define prior H1
+
+sample_H0 <- rnorm(10000, p, sd)
+likelihood_H0 <- length(sample_H0[sample_H0 > X/n])/length(sample_H0)
+likelihood_H0
+
+
+sample_H1 <- rbeta(100000, alpha, beta)
+likelihood_H1 <- length(sample_H1[sample_H1 > X/n])/length(sample_H1)
+likelihood_H1
+
+Bayes_factor <- likelihood_H1/likelihood_H0
+Bayes_factor
+```
+
+c. 
+
+```{r}
+sample_H0 <- rnorm(10000, p, sd)
+
+freq.test <- 
+  t.test(sample_H0, alternative = c('greater'), mu = 0.55)
 ```
