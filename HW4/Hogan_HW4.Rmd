@@ -17,21 +17,31 @@ set.seed(47)
 
 ## Question 1.
 
-a. $3 \geq x$?
+a. $x= 0, 1, 2$.
+```{r}
+freq.test <- 
+  prop.test(3, 12, p=0.5, alt='less', conf.level = 0.95) 
+freq.test$p.value < 0.05
+
+freq.test <- 
+  prop.test(2, 12, p=0.5, alt='less', conf.level = 0.95) 
+freq.test$p.value < 0.05
+```
 
 b. $$H_0: p\geq .5 \qquad H_1: p < .5$$
 
 Suppose 3 successes out of 12 were observed.
 
 ```{r}
-data <- c(rep(1, times = 3), rep(0, times = 9))
-frequentist.test <- t.test(data, alternative = "less", mu = 0.5)
+frequentist.test <- 
+  prop.test(3, 12, p=0.5, alt='less', conf.level = 0.95) 
 
 frequentist.test
 frequentist.test$p.value
 frequentist.test$p.value < 0.05
+frequentist.test$p.value < 0.1
 ```
-Results are significant under frequentist paradigm, publish away.
+Results are significant under frequentist paradigm at the 10\% level, maybe publish.
 
 c. Suppose now that the data was distributed according to a negative binomial.
 
@@ -39,8 +49,9 @@ c. Suppose now that the data was distributed according to a negative binomial.
 new.test <- pnbinom(12-3, size = 12, prob = 0.5, lower.tail = TRUE)
 new.test
 new.test < 0.05
+new.test < 0.1
 ```
-Results are not significant under frequentist paradigm, no publishing will be done today.
+Results are not significant at any standard level under frequentist paradigm, no publishing will be done today.
 
 d. The ambiguity in data collection methods has made me less confident in frequentist tests of significance.
 
@@ -144,7 +155,7 @@ Suppose $p|H_1 \sim Beta(5, 1)$, non-stupid prior assigning little probability b
 
 $$ BF_{10}= \frac{P(y|H_1)}{P(y|H_0)}= \frac{\int P(y|p)f_1(p)dp}{\int P(y|p)f_0(p)dp}$$
 
-```{r}
+```{r, warning = FALSE}
 pbeta(0.55, 5, 1, lower.tail = F)
 
 n <- 1000
@@ -154,24 +165,32 @@ sd <- 0.2 # define prior H0
 alpha <- 5 # define prior H1
 beta <- 1 # define prior H1
 
-sample_H0 <- rnorm(10000, p, sd)
-likelihood_H0 <- length(sample_H0[sample_H0 > X/n])/length(sample_H0)
+sample_H0 <- rnorm(100000, p, sd)
+p_H0 <- dbinom(X, size = n, prob = sample_H0)
+likelihood_H0 <- mean(na.omit(p_H0))
 likelihood_H0
 
 
 sample_H1 <- rbeta(100000, alpha, beta)
-likelihood_H1 <- length(sample_H1[sample_H1 > X/n])/length(sample_H1)
+p_H1 <- dbinom(X, size = n, prob = sample_H1)
+likelihood_H1 <- mean(na.omit(p_H1))
 likelihood_H1
 
 Bayes_factor <- likelihood_H1/likelihood_H0
 Bayes_factor
+Bayes_factor < 10^0
 ```
+
+The data supports the null hypothesis, that $p < 0.55$, since $BF_{10} < 10^0$.
 
 c. 
 
 ```{r}
-sample_H0 <- rnorm(10000, p, sd)
-
 freq.test <- 
-  t.test(sample_H0, alternative = c('greater'), mu = 0.55)
+  prop.test(X, n, p=0.55, alt='greater', conf.level = 0.95) 
+freq.test
+freq.test$p.value
+freq.test$p.value < 0.05
 ```
+
+Fail to reject null hypothesis. 
