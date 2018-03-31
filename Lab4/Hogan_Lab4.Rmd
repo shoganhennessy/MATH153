@@ -1,0 +1,101 @@
+---
+title: "Lab 4"
+author: "Senan Hogan-H."
+date: "5 April 2018"
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+- \usepackage{amsmath}
+- \usepackage{hyperref}
+---
+
+Completed with James Kinney, around 50/50 work completed between us.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+gc()
+ls()
+library(tidyverse)
+set.seed(47)
+```
+
+## Question 1.
+
+```{r}
+# Define function that returns a dataframe of a random walk in 2 dimensions
+
+random_walker <- function(w1_0, w2_0, epsilon, n){
+  t <- c(0:n) # define chain
+  w1_t <- c(w1_0) # define chain
+  w2_t <- c(w2_0) # define chain
+  for (i in c(1:n) ){
+    # First coordinate
+    error1 <- runif(1, -epsilon , epsilon)
+    w1_move <- w1_t[i] + runif(1, -epsilon , epsilon)
+    while (w1_move > 1 |  w1_move < -1){
+      error1 <- runif(1, -epsilon , epsilon)
+      w1_move <- w1_t[i] + runif(1, -epsilon , epsilon)
+    }
+    w1_t[i+1] <- w1_move
+  
+    # Second coordinate
+    error2 <- runif(1, -epsilon , epsilon)
+    w2_move <- w2_t[i] + runif(1, -epsilon , epsilon)
+    while (w2_move > 1 |  w2_move < -1){
+      error2 <- runif(1, -epsilon , epsilon)
+      w2_move <- w2_t[i] + runif(1, -epsilon , epsilon)
+    }
+    w2_t[i+1] <- w2_move
+  }
+  return(data.frame(w1_t, w2_t, t))
+}
+
+# Define function that returns a graph of a random walk in 2 dimensions
+
+random_walker_graph <- function(w1_0, w2_0, epsilon, n){
+  data <- random_walker(w1_0, w2_0, epsilon, n)
+  graph <- data %>% ggplot(aes(x = w1_t, y = w2_t)) +
+    geom_text(aes(label = t)) + 
+    geom_path() + 
+    coord_cartesian(xlim = c(-1, 1), ylim = c(-1, 1)) + 
+    theme_classic()
+  return(graph)
+}
+
+# Define function that returns an estimate of pi from a random walk in 2 dimensions
+random_walker_pi <- function(w1_0, w2_0, epsilon, n){
+  data <- random_walker(w1_0, w2_0, epsilon, n)
+  t <- c(1:nrow(data))
+  w1 <- w2 <- pi_estimate <- c()
+  for (i in t){
+    w1 <- c(w1, data$w1_t[i])
+    w2 <- c(w2, data$w2_t[i])
+    w <- w1^2 + w2^2
+    pi_estimate <- c(pi_estimate, 4*length(w[w < 1])/length(w))
+  }
+  graph <- data.frame(t, pi_estimate) %>% 
+    ggplot(aes(x=t, y = pi_estimate)) +
+    geom_point() + geom_line() +
+    geom_hline(yintercept=pi, linetype='dashed') + 
+    coord_cartesian(ylim = c(2, 4))
+  return(graph)
+}
+```
+
+i. Choice of $\epsilon$.
+
+```{r}
+random_walker_graph(0, 0, 1 , 10)
+random_walker_pi(0, 0, 0.5 , 10000)
+random_walker_pi(0, 0, 0.1 , 10000)
+
+```
+ 
+ii. Choice of $w_0$.
+
+iii. Choice of chain length, $n$. 
+
+
+## Question 2.
