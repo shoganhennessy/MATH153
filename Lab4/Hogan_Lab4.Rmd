@@ -5,6 +5,7 @@ date: "5 April 2018"
 output:
   pdf_document: default
   html_document: default
+  word_document: default
 header-includes:
 - \usepackage{amsmath}
 - \usepackage{hyperref}
@@ -53,9 +54,9 @@ random_walker <- function(w1_0, w2_0, epsilon, n){
 }
 
 # Define function that returns a graph of a random walk in 2 dimensions
+# input is a dataframe created by first function
 
-random_walker_graph <- function(w1_0, w2_0, epsilon, n){
-  data <- random_walker(w1_0, w2_0, epsilon, n)
+random_walker_graph <- function(data){
   graph <- data %>% ggplot(aes(x = w1_t, y = w2_t)) +
     geom_text(aes(label = t)) + 
     geom_path() + 
@@ -65,8 +66,9 @@ random_walker_graph <- function(w1_0, w2_0, epsilon, n){
 }
 
 # Define function that returns an estimate of pi from a random walk in 2 dimensions
-random_walker_pi <- function(w1_0, w2_0, epsilon, n){
-  data <- random_walker(w1_0, w2_0, epsilon, n)
+# input is a dataframe created by first function
+
+random_walker_pi <- function(data){
   t <- c(1:nrow(data))
   w1 <- w2 <- pi_estimate <- c()
   for (i in t){
@@ -87,9 +89,14 @@ random_walker_pi <- function(w1_0, w2_0, epsilon, n){
 i. Choice of $\epsilon$.
 
 ```{r}
-random_walker_graph(0, 0, 1 , 10)
-random_walker_pi(0, 0, 0.5 , 10000)
-random_walker_pi(0, 0, 0.1 , 10000)
+data <- random_walker(0, 0, 1 , 10)
+
+random_walker_graph(data)
+random_walker_pi(data)
+
+data <- random_walker(0, 0, 0.1 , 10000)
+
+random_walker_pi(data)
 
 ```
  
