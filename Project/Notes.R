@@ -16,3 +16,7 @@ http://econlog.econlib.org/archives/2009/11/why_arent_acade.html
 
 
 https://rpubs.com/mfondoum/bayesian_linear_regression
+
+Consider prediction for those expected to have the highest wages.  
+
+Do they have wages unexplainably high? 
