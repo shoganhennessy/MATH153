@@ -1,0 +1,68 @@
+---
+title: "Homework 4"
+author: "Senan Hogan-H."
+date: "12 April 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+gc()
+ls()
+options(digits=4)
+library(tidyverse)
+set.seed(47)
+```
+
+Consider observing $x_t \sim$ Poisson($\lambda)$ from times $t=1, 2, \dots, N$, assuming that each $x_t$ is independent.  At some point in this time span, say $t=n$, the value of $\lambda$ switches from some value $\lambda_1$ to $\lambda_2$.  Our goal is to estimate both values of $\lambda_i$ as well as the time point $n$ at which the switch occurs.  
+
+First, assume independent gamma priors on $\lambda_1$ and $\lambda_2$\, as well as a discrete uniform prior on $n$.  \\[5pt]
+
+So that the priors are as follows: 
+
+$n \sim \mathcal{U}(1, \dots , n)$.
+
+$\lambda_1 \sim \Gamma(\alpha_1, \beta_1), \lambda_2 \sim \Gamma(\alpha_2, \beta_2)$ for $\alpha_1, \beta_1, \alpha_2, \beta_2 > 0$.
+
+$x_i \sim $Pois$(\lambda_1)$ if $i \leqslant n$, Pois$(\lambda_2)$ otherwise.
+
+Next, we are looking for the posterior distribution, $p(\lambda_1 \lambda_2, n | x)$.  By the Bayes rule: 
+$$p(\lambda_1, \lambda_2, n | x) \propto p(x | \lambda_1, \lambda_2, n)p(\lambda_1)p(\lambda_2)p(n)$$
+
+The likelihood here spilts to the cases before and after $\lambda_i$ has changed:
+
+$$ p(x | \lambda_1, \lambda_2, n) = p(x_1, \dots , x_n | \lambda_1)p(x_{n+1}, \dots , x_N | \lambda_2) $$
+Note that the draws are independent, so the likelihoods take the form:
+
+$$ p(x_1, \dots , x_n | \lambda_1) = \prod_{i=1}^{n}p(x_i|\lambda_1)$$, 
+$$p(x_{n+1}, \dots , x_N | \lambda_2) = \prod_{i=n+1}^{N}p(x_i|\lambda_2)$$
+And so the posterior takes the form:
+$$ p(\lambda_1, \lambda_2, n | x) \propto p(\lambda_1)p(\lambda_2)p(n) \prod_{i=1}^{n}p(x_i|\lambda_1)\prod_{i=n+1}^{N}p(x_i|\lambda_2)$$
+Giving definitions of the appropriate distributions:
+$$=\frac{\beta_1^{\alpha_1 }\lambda_1^{\alpha_1 -1}e^{-\beta_1 \lambda_1}}{\Gamma(\alpha_1)}
+\frac{\beta_2^{\alpha_2 }\lambda_2^{\alpha_2 -1}e^{-\beta_2 \lambda_2}}{\Gamma(\alpha_2)}
+\frac{1}{N}
+\prod_{i=1}^{n}\frac{\lambda_1^{x_i} e^{-\lambda_1}}{x_i !}
+\prod_{i=n+1}^{N}\frac{\lambda_2^{x_i} e^{-\lambda_2}}{x_i !}$$
+
+The next step is to isolate the relevant posteriors on $\lambda_1$ and $\lambda_2$.
+
+$$ p(\lambda_1 | \lambda_2, n, x) \propto 
+\frac{\beta_1^{\alpha_1 }\lambda_1^{\alpha_1 -1}e^{-\beta_1 \lambda_1}}{\Gamma(\alpha_1)}
+\prod_{i=1}^{n}\frac{\lambda_1^{x_i} e^{-\lambda_1}}{x_i !}
+$$
+$$ = 
+\frac{\beta_1^{\alpha_1 }\lambda_1^{\alpha_1- 1}\lambda_1^{\sum_{i=1}^{n}x_i}e^{-\beta_1\lambda_1}e^{-n\lambda_1}}
+{\Gamma(\alpha_1)\prod_{i=1}^{n}{x_i !}}
+ \propto
+\frac{\lambda_1^{(\alpha_1 + \sum_{i=1}^{n}x_i) - 1}e^{-(\beta_1 + n) \lambda_1}}
+{\prod_{i=1}^{n}(\alpha_1 - 1)!{x_i !}}
+$$
+
+Use a Gibbs sampler to obtain samples from the posterior.
+Suppose $\lambda_1 \sim \Gamma(1,2)$, $\lambda_2 \sim \Gamma(1,2)$, and $n \sim $Unif$\{0, 1000\}$.
+
+```{r}
+k <- 1
+```

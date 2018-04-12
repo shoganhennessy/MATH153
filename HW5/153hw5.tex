@@ -1,0 +1,12 @@
+\documentclass{article}
+\begin{document}
+\centerline{Math 153 - Homework 5}
+\vspace{.1in}
+\noindent
+1.  Consider observing $x_t \sim$ Poisson($\lambda)$ from times $t=1, 2, \dots, N$. Assume that each $x_t$ is independent.  At some point in this time span, say $t=n$, the value of $\lambda$ switches from some value $\lambda_1$ to $\lambda_2$.  Our goal is to estimate both values of $\lambda_i$ as well as the time point $n$ at which the switch occurs.  Assume independent gamma priors on both $\lambda$ values, as well as a discrete uniform prior on $n$.  Use a Gibbs sampler to obtain samples from the posterior.\\[5pt]
+You will submit both the derivation of the posterior, as well as the conditionals that are necessary for the Gibbs sampler implementation, as well as simulation results for this entire set up (choose values of $\lambda_i$ and $n$, generate the data, and then use that data to draw from the posterior and return point and interval estimates for all 3 parameters.\\[5pt]
+Note: The conditionals on $\lambda_i$ will be easy, but the conditional on $n$ will not be recognizable.  You will have to write some code to generate from this distribution.  You can use {\it rmultinom} after computing the probabilities associated with each value of $n$ if you want. \\[5pt]
+Note 2: This is a simpler case of the mixture distribution that we started talking about Thursday.  Which observations belong to which distribution, rather than having to guess for each value, is determined by a single value, the time at which the switch occurs.\\[5pt]
+Note 3: Again, do not find the solution to this by googling Gibbs sampler.  Figuring this out on your own will go a long way to your understanding of the Gibbs sampler and how this game is played.  If you run into trouble, ask me or a classmate.  
+     
+\end{document} 
