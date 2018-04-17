@@ -47,5 +47,5 @@ Abstract goes here.
 Start here.  \cite{heckman2006earnings}
 
 
-\bibliography{bibliography.bib}
+\bibliography{bibliography}
 \end{document}
