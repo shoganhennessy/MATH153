@@ -1,5 +1,7 @@
 \documentclass[notitlepage,12pt]{article}
+\bibliographystyle{plain}
 \usepackage{setspace}
+\usepackage{Sweave}
 \doublespacing
 
 % Packages to use
@@ -11,7 +13,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \pagestyle{fancy}
-\lhead{The Rise in Returns to Skill?}
+\lhead{A Bayesian Approach to the Mincer Wage Equation}
 \rhead{Senan Hogan-H.}
 
 \usepackage{float}
@@ -22,7 +24,7 @@
 \author{Senan Hogan-H. \\ \\ \textit{Final Paper} \\ MATH153: Bayesian Statistics\footnote{\href{https://github.com/shoganhennessy/MATH153}{\color{blue}{\underline{This class and project's Github repository, which hosts all contributing materials, is available here.}}}}}
 
 % Title
-\title{An International Comparison of Wage Inequality and Returns to Skill}
+\title{A Bayesian Approach to the Mincer Wage Equation, \\ with Quantile  Analysis Across the Income Distribution}
 
 % Date
 \date{May 2018}
@@ -42,6 +44,8 @@ Abstract goes here.
 
 % Introduction
 \section{Introduction}
-Start here.
+Start here.  \cite{heckman2006earnings}
 
+
+\bibliography{bibliography.bib}
 \end{document}
