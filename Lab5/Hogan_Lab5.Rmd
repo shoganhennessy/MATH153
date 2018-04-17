@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align="center")
 gc()
 ls()
 library(tidyverse)
+library(MASS)
 set.seed(47)
 ```
 
@@ -32,16 +33,15 @@ c.
 
 ```{r}
 schools <- read.table ("schools.dat", header = T)
-J <- nrow (schools)
+J <- nrow(schools)
 y <- schools$estimate
 sigma.y <- schools$sd
-data <- list ("J", "y", "sigma.y") inits <- function()
-  list (
-    theta = rnorm(J, 0, 100),
-    mu.theta = rnorm(1, 0, 100),
-    sigma.theta = runif(1, 0, 100)
-  )
+data <- list ("J", "y", "sigma.y") 
+inits <- function(){
+  list (theta=rnorm(J,0,100), mu.theta=rnorm(1,0,100), sigma.theta=runif(1,0,100))
+}
 parameters <- c("theta", "mu.theta", "sigma.theta")
+
 theta.update <- function () {
   theta.hat <-
     (mu / tau ^ 2 + y / sigma.y ^ 2) / (1 / tau ^ 2 + 1 / sigma.y ^
@@ -58,9 +58,10 @@ tau.update <- function () {
 n.chains <- 5
 n.iter <- 1000
 
-sims <- array (NA, c(n.iter, n.chains, J + 2))
-dimnames(sims) <-
-  list (NULL, NULL, c(paste("theta[", 1:8, "]", sep = ""), "mu", "tau"))
+sims <- array (NA, c(n.iter, n.chains, J+2))
+dimnames(sims) <- list(NULL, NULL, c(paste("theta[", 1:8, "]", sep=""), "mu", "tau"))
+
+
 for (m in 1:n.chains) {
   mu <- rnorm (1, mean(y), sd(y))
   tau <- runif (1, 0, sd(y))
@@ -77,6 +78,117 @@ for (i in 1:1000) {
   big[i] <- sum(sims[i,1,1:8]>28)
 }
 mean(big)
+```
+
+
+## 3  Binomial Data
+
+```{r}
+data <- read.table("rat-tumors.txt",header=T)
+# Adjust this data to fit for some baseball players where p is known
+# rbinom(50, 1, prob = 0.306)
+
+y <- data$y
+n <- data$N
+J <- length(y)
+
+log.prior <- function(alpha,beta) {
+  {-2.5}*log(alpha + beta)
+}
+
+draw.thetas <- function(alpha,beta) {
+  return(rbeta(J,alpha+y,beta+n-y))
+}
+
+draw.alpha <- function(alpha,beta,theta,prop.sd) {
+  alpha.star <- rnorm(1,alpha,prop.sd)
+  num <- J*(lgamma(alpha.star+beta) - lgamma(alpha.star)) +
+    alpha.star*sum(log(theta)) + log.prior(alpha.star,beta)
+  den <- J*(lgamma(alpha+beta)      - lgamma(alpha)) +
+    alpha     *sum(log(theta)) + log.prior(alpha,beta)
+# print(c(alpha,alpha.star,num,den))
+  acc <- ifelse((log(runif(1))<=num - den)&&(alpha.star>0),1,0)
+  alpha.acc <<- alpha.acc + acc
+  return(ifelse(acc,alpha.star,alpha))
+}
+
+draw.beta <- function(alpha,beta,theta,prop.sd) {
+  beta.star <- rnorm(1,beta,prop.sd)
+  num <- J*(lgamma(alpha+beta.star) - lgamma(beta.star)) +
+    beta.star*sum(log(1-theta)) + log.prior(alpha,beta.star)
+  den <- J*(lgamma(alpha+beta)      - lgamma(beta)) +
+    beta     *sum(log(1-theta)) + log.prior(alpha,beta)
+# print(c(beta,beta.star,num,den))
+  acc <- ifelse((log(runif(1))<=num - den)&&(beta.star>0),1,0)
+  beta.acc <<- beta.acc + acc
+
+  return(ifelse(acc,beta.star,beta))
+}
+
+################################################################  
+
+B <- 0
+M <- 1000
+
+MM <- B + M
+
+alpha <- matrix(NA,MM)
+beta <- alpha
+theta <- matrix(NA,nrow=MM,ncol=J)
+
+# Metropolis tuning parameters
+alpha.prop.sd <-  0.25
+beta.prop.sd <-   3
+
+# Initial values for the chain
+alpha[1] <- 1
+beta[1] <- 1
+theta[1,] <- draw.thetas(alpha[1],beta[1]) # or theta[1,] <- (y+.5/(n+.5)
+
+# Monitor acceptance frequency
+alpha.acc <- 0
+beta.acc <- 0
+
+# MCMC simulation
+for (m in 2:MM) {
+  alpha[m] <- draw.alpha(alpha[m-1],beta[m-1],theta[m-1,],alpha.prop.sd)
+  beta[m] <- draw.beta(alpha[m],beta[m-1],theta[m-1,],beta.prop.sd)
+  theta[m,] <- draw.thetas(alpha[m],beta[m])
+}
+
+good <- (B+1):MM
+
+alpha.mcmc <- alpha[good]
+beta.mcmc <- beta[good]
+theta.mcmc <- theta[good,]
+
+
+par(mfrow=c(2,2))
+plot(alpha.mcmc,type="l")
+plot(beta.mcmc,type="l")
+acf(alpha.mcmc,1000)
+acf(beta.mcmc,1000)
+
+print(round(c(alpha.rate=alpha.acc/MM,beta.rate=beta.acc/MM),2))
+
+#######################################################################
+
+par(mfrow=c(3,2))
+
+plot(density(alpha))
+plot(density(beta))
+
+contour(kde2d(alpha,beta),xlim=c(0,5),ylim=c(0,30),xlab="alpha",ylab="beta")
+contour(kde2d(alpha/beta,log(alpha+beta)),xlim=c(0.1,0.3),ylim=c(1.5,4),
+        xlab="alpha/beta",ylab="log(alpha+beta)")
+
+persp(kde2d(alpha,beta),theta=45,phi=45,xlim=c(0,5),ylim=c(0,30))
+persp(kde2d(alpha/beta,log(alpha+beta)),theta=45,phi=45,xlim=c(0.1,0.3),ylim=c(1.5,4))
+        
+########################################################################
 
 
 ```
+
+
+e. 
