@@ -1,41 +1,24 @@
-\documentclass[a4paper, 12pt]{article}
-\usepackage{comment} % enables the use of multi-line comments (\ifx \fi) 
-\usepackage{lipsum} %This package just generates Lorem Ipsum filler text. 
-\usepackage{fullpage} % changes the margin
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
 \usepackage{Sweave}
+
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
-%Header-Make sure you update this information!!!!
-\noindent
-\large\textbf{Post/Pre-Lab X Report} \hfill \textbf{Senan Hogan-H.} \\
-\normalsize MATH 153 \hfill Bayesian Statistics \\
 
-\section*{Problem Statement}
-Put your Problem statement here! 
+ 
+\title{Bayesian Linear Regression Applied to Wage Data}%replace X with the appropriate number
+\author{Senan Hogan-H.\\ %replace with your name
+MATH 153: Bayesian Statistics} %if necessary, replace with your course title
+\date{May 2018}
+ 
+\maketitle
 
-\section*{Investigation/Research}
-\lipsum[2]
+\section{Intro}
+ok \cite{heckman2006earnings}
 
-\section*{Alternative Solutions}
-\lipsum[3]
-
-\section*{Optimum Solution}
-\lipsum[4]
-
-\section*{Construction/Implementation}
-\lipsum[5]
-
-\section*{Analysis \& Testing}
-\lipsum[6]
-
-\section*{Final Evaluation}
-\lipsum[7]
-
-
-Start here.  \cite{heckman2006earnings}
-
-
+\bibliographystyle{plain}
 \bibliography{bibliography}
-
+ 
 \end{document}
