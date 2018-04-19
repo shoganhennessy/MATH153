@@ -12,13 +12,14 @@
 \author{Senan Hogan-H.\\ %replace with your name
 MATH 153: Bayesian Statistics} %if necessary, replace with your course title
 \date{May 2018}
- 
 \maketitle
 
 \section{Intro}
 ok \cite{heckman2006earnings}
 
-\section{Derivation}
+\section{Log-Normal prior}
+
+\section{Derivation: Better prior}
 % see: http://www.ecineq.org/milano/WP/ECINEQ2016-407.pdf
 
 \section{Application with Data, March CPS}
