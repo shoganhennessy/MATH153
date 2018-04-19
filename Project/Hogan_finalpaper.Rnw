@@ -17,12 +17,18 @@ MATH 153: Bayesian Statistics} %if necessary, replace with your course title
 \section{Intro}
 ok \cite{heckman2006earnings}
 
-\section{Log-Normal prior}
+\section{Choice of Prior}
 
 \section{Derivation: Better prior}
 % see: http://www.ecineq.org/milano/WP/ECINEQ2016-407.pdf
 
 \section{Application with Data, March CPS}
+<< >>=
+library(tidyverse)
+library(data.table)
+CPS.data <- fread('Project/CPS__test_data.csv', header = T, sep = ',')
+#CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',')
+@
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
