@@ -1,51 +1,41 @@
-\documentclass[notitlepage,12pt]{article}
-\bibliographystyle{plain}
-\usepackage{setspace}
+\documentclass[a4paper, 12pt]{article}
+\usepackage{comment} % enables the use of multi-line comments (\ifx \fi) 
+\usepackage{lipsum} %This package just generates Lorem Ipsum filler text. 
+\usepackage{fullpage} % changes the margin
 \usepackage{Sweave}
-\doublespacing
 
-% Packages to use
-\usepackage{graphicx}
-\usepackage[table]{xcolor}
-\usepackage[longnamesfirst]{natbib}
-\usepackage[margin=1in]{geometry}
-\usepackage{fancyhdr}
-\usepackage{caption}
-\usepackage{subcaption}
-\pagestyle{fancy}
-\lhead{A Bayesian Approach to the Mincer Wage Equation}
-\rhead{Senan Hogan-H.}
-
-\usepackage{float}
-\usepackage{amsmath}
-\usepackage{hyperref}
-
-% Author
-\author{Senan Hogan-H. \\ \\ \textit{Final Paper} \\ MATH153: Bayesian Statistics\footnote{\href{https://github.com/shoganhennessy/MATH153}{\color{blue}{\underline{This class and project's Github repository, which hosts all contributing materials, is available here.}}}}}
-
-% Title
-\title{A Bayesian Approach to the Mincer Wage Equation, \\ with Quantile  Analysis Across the Income Distribution}
-
-% Date
-\date{May 2018}
-%%% BEGIN %%%
 \begin{document}
 \SweaveOpts{concordance=TRUE}
-\maketitle
-\thispagestyle{empty}
-% Abstract
-\begin{abstract}
-Abstract goes here.
-\end{abstract}
+%Header-Make sure you update this information!!!!
+\noindent
+\large\textbf{Post/Pre-Lab X Report} \hfill \textbf{Senan Hogan-H.} \\
+\normalsize MATH 153 \hfill Bayesian Statistics \\
+
+\section*{Problem Statement}
+Put your Problem statement here! 
+
+\section*{Investigation/Research}
+\lipsum[2]
+
+\section*{Alternative Solutions}
+\lipsum[3]
+
+\section*{Optimum Solution}
+\lipsum[4]
+
+\section*{Construction/Implementation}
+\lipsum[5]
+
+\section*{Analysis \& Testing}
+\lipsum[6]
+
+\section*{Final Evaluation}
+\lipsum[7]
 
 
-\newpage
-\setcounter{page}{1}
-
-% Introduction
-\section{Introduction}
 Start here.  \cite{heckman2006earnings}
 
 
 \bibliography{bibliography}
+
 \end{document}
