@@ -8,9 +8,9 @@
 \SweaveOpts{concordance=TRUE}
 
  
-\title{Bayesian Linear Regression Applied to Wage Data}
-\author{Senan Hogan-H.\\ %replace with your name
-MATH 153: Bayesian Statistics} %if necessary, replace with your course title
+\title{Bayesian Linear Regression with Applications to Wage Data}
+\author{Senan Hogan-H.\\ 
+MATH 153: Bayesian Statistics} 
 \date{May 2018}
 \maketitle
 
@@ -28,6 +28,9 @@ library(tidyverse)
 library(data.table)
 CPS.data <- fread('Project/CPS__test_data.csv', header = T, sep = ',')
 #CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',')
+
+age.reg <- lm(data = .)
+
 @
 
 \bibliographystyle{plain}

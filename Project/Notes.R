@@ -1,4 +1,4 @@
-Wage data from Macrh CPS
+Wage data from March CPS
 
 Question regular Mincer-type linear function.
 
