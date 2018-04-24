@@ -1,7 +1,7 @@
 ---
 title: "Lab 5"
 author: "Senan Hogan-H."
-date: "19 April 2018"
+date: "24 April 2018"
 output:
   pdf_document: default
   html_document: default
@@ -358,7 +358,8 @@ data$id <- as.character(data$id)
 data$x_bar <- data$y/data$N
 
 data %>%
-  gather(variable, estimate, c('p', 'x_bar', 'p_bar', 'p_hat', 'p_bayes' )) %>% 
+  gather(variable, estimate, 
+         c('p', 'x_bar', 'p_bar', 'p_hat', 'p_bayes' )) %>% 
   ggplot(aes(x = id, y = estimate)) +   
   geom_bar(aes(fill = variable), position = "dodge", stat="identity")  
 ```
@@ -373,14 +374,24 @@ as.data.frame(cbind(
   p_sampler.matrix[,2], 
   p_sampler.matrix[,3],
   p_sampler.matrix[,4],
-  p_sampler.matrix[,5]),
+  p_sampler.matrix[,5],
+  p_sampler.matrix[,6],
+  p_sampler.matrix[,7], 
+  p_sampler.matrix[,8],
+  p_sampler.matrix[,9],
+  p_sampler.matrix[,10]),
   row.names = NULL) %>% 
   ggplot(aes(x = V1)) + 
   geom_line(aes(y = V2, colour = 'i = 1')) +
   geom_line(aes(y = V3, colour = 'i = 2')) +
   geom_line(aes(y = V4, colour = 'i = 3')) +
   geom_line(aes(y = V5, colour = 'i = 4')) +
-  geom_line(aes(y = V6, colour = 'i = 5')) + 
+  geom_line(aes(y = V6, colour = 'i = 5')) +
+  geom_line(aes(y = V7, colour = 'i = 6')) +
+  geom_line(aes(y = V8, colour = 'i = 7')) +
+  geom_line(aes(y = V9, colour = 'i = 8')) +
+  geom_line(aes(y = V10, colour = 'i = 9')) +
+  geom_line(aes(y = V11, colour = 'i = 10')) +
   ylim(0,1)
 ```
 
@@ -422,4 +433,4 @@ data %>% ggplot() +
   xlab("p-value")
 ```
 
-Clearly the same approach produces different estimates in the smaller data set, though the approach seems to be less appropriate in such a small sample size, as seen in the graph of the function.
+Clearly the same approach produces different estimates for $\alpha$ and $\beta$ in the smaller data set, more similar to the blog post's estimates, though the approach seems to be less appropriate in such a small sample size, as seen in the graph of the function.
