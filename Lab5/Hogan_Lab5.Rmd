@@ -380,7 +380,8 @@ as.data.frame(cbind(
   geom_line(aes(y = V3, colour = 'i = 2')) +
   geom_line(aes(y = V4, colour = 'i = 3')) +
   geom_line(aes(y = V5, colour = 'i = 4')) +
-  geom_line(aes(y = V6, colour = 'i = 5'))
+  geom_line(aes(y = V6, colour = 'i = 5')) + 
+  ylim(0,1)
 ```
 
 iii. My smaller data set suggests that $\alpha = 78.66$ and $\beta = 224.87$ are not reasonable estimates.  
@@ -414,11 +415,11 @@ beta0 <- ab[2]
 alpha0
 beta0
 
-data %>%
-  ggplot() +
+data %>% ggplot() +
   geom_histogram(aes(p, y = ..density..), binwidth = .005) +
   stat_function(fun = function(x) dbeta(x, alpha0, beta0), 
                 colour = "red", size = 1) +
   xlab("p-value")
 ```
 
+Clearly the same approach produces different estimates in the smaller data set, though the approach seems to be less appropriate in such a small sample size, as seen in the graph of the function.
