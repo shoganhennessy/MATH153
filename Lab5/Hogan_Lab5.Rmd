@@ -289,7 +289,7 @@ persp(kde2d(alpha/beta,log(alpha+beta)),theta=45,phi=45)
 
 i.  This part involves using my own code from here on.  The following compares the estimator to MSE to the two frequentist extremes.  Frequentists would generally assume that all draws are the same, so take the mean of the posterior, or consider every draw different so use a draw as an estimator of itself.
 
-First suppose that all draws are the same, so $\hat{p}_i = $ mean$($Beta$(\hat{\alpha},\hat{\beta}))$.
+First suppose that all draws are the same, so $p_i=$mean$($Beta$(\alpha,\beta))$.
 
 ```{r}
 data$p_bar <- qbeta(0.5, mean(alpha.mcmc), mean(beta.mcmc))
@@ -299,7 +299,7 @@ data$p_bar_mse <- (data$p_bar - data$p)^2
 mean(data$p_bar_mse)
 ```
 
-Second suppose that all draws are different, so $\hat{p}_i = y_i \sim $Beta$(\hat{\alpha},\hat{\beta}))$.
+Second suppose that all draws are different, so $p_i = y_i \sim Beta(\alpha,\beta)$.
 
 ```{r}
 data$p_hat <- rbeta(k, mean(alpha.mcmc), mean(beta.mcmc))
@@ -390,7 +390,7 @@ quantile(alpha.mcmc, prob = c(0.025, 0.975))
 quantile(beta.mcmc, prob = c(0.025, 0.975))
 ```
 
-Let's show how the same approach estimates $\alpha_0$ and $\ebta_0$ in my smaller data set.
+Let's show how the same approach estimates $\alpha_0$ and $\beta_0$ in my smaller data set.
 
 ```{r}
 library(stats4)
