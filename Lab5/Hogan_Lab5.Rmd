@@ -365,7 +365,7 @@ data %>%
 ```
 
 
-ii.
+ii.  The chains all converge in the space, though exhibit some variability, as is to be expected.
 
 ```{r}
 as.data.frame(cbind(
