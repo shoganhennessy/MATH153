@@ -1,38 +1,94 @@
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry} 
 \usepackage{amsmath,amsthm,amssymb}
+\usepackage{setspace}
+\doublespacing
 \usepackage{Sweave}
-
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
  
-\title{Bayesian Linear Regression with Applications to Wage Data}
+\title{Bayesian Linear Regression Applied to Wage Data}
 \author{Senan Hogan-H.\\ 
 MATH 153: Bayesian Statistics} 
 \date{May 2018}
 \maketitle
 
-\section{Intro}
-ok \cite{heckman2006earnings}
+\section{Mincer Wage Equation}
+The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentistic linear regression of the following form:
+\begin{equation}
+Y_{i}  = Y_0 + \rho s_{i} + \beta_{1} x_{i} + \beta_{2} x_{i}^2 + \varepsilon_{i}
+\end{equation}
+$Y_{i}$ represents the log of a measure of income for an individual , $s_i$ years of education, and $Y_0$ the standard intercept.  $\rho$, $\beta_{1}$, $\beta_{2}$ are coefficients to be estimated with residual $\varepsilon_{i}$.  Potential experience, $x_{it}$, is defined as age minus years of education minus 6, i.e. $x_{it} = Age_{it} - s_{it} - 6$.  The equation may also include a dummy variable for race, gender, and other variables to control for these differences.
+
+This regression approach has been names the Mincer wage equation or earnings function, which dates back to some of the first studies that focus on wage inequality \cite{mincer1958investment, mincer1974schooling}.  This model is extremely influential in labour economics to describe and predict inequality in wages in the US population.  Its influence comes in part from its theoretical foundations and simplicity in interpretation, yet is documented as being only accurate in predicting wages\footnote{Where the equation may estimated independently for different years.} for the 1950s, and less so after.  The approach is classic in the frequentist, econometrics paradiagm and is still (often egregiously) used in economic research today for predictive purposes.  Perhaps there is an alternative approach, that can better explain observed inequality in the income distribution and its relationship to income and labour market experience. 
 
 \section{Choice of Prior}
 
 \section{Derivation: Better prior}
 % see: http://www.ecineq.org/milano/WP/ECINEQ2016-407.pdf
 
+% see: https://rpubs.com/mfondoum/bayesian_linear_regression
+
 \section{Application with Data, March CPS}
-<< >>=
+
+
+
+\section{Appendix: R code}
+
+<< echo=FALSE, include=FALSE, warning=F, message=F >>=
+set.seed(47)
 library(tidyverse)
 library(data.table)
-CPS.data <- fread('Project/CPS__test_data.csv', header = T, sep = ',')
-#CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',')
-
-age.reg <- lm(data = .)
-
+library(stargazer)
+library(BAS)
+#CPS.data <- fread('Project/CPS__test_data.csv', header = T, sep = ',')
+#CPS.data <- fread('CPS_data.csv', header = T, sep = ',')
+CPS.data <- read.csv('CPS_data.csv')
 @
 
+<< echo=FALSE, results=tex, warning=FALSE >>=
+Mincer1.reg <- CPS.data %>% subset(year>=1980 & year<=1985) %>%
+  lm( log(rincp_ern) ~ education + I(age-education-6) + I((age-education-6)^2) +
+        female + Race_black + Race_hispanic, 
+        data=.)
+
+Mincer2.reg <- CPS.data %>% subset(year>=2010 & year<=2016) %>%
+  lm( log(rincp_ern) ~ education + I(age-education-6) + I((age-education-6)^2) +
+        female + Race_black + Race_hispanic, 
+        data=.)
+
+Mincer3.reg <- CPS.data %>% 
+  lm( log(rincp_ern) ~ education + I(age-education-6) + I((age-education-6)^2) +
+        female + Race_black + Race_hispanic, 
+        data=.)
+#summary(Mincer3.reg)$r.squared
+
+log.glm <- CPS.data %>% 
+  glm( log(rincp_ern) ~ education + I(age-education-6) + I((age-education-6)^2) +
+        female + Race_black + Race_hispanic, 
+        data=.)
+#summary(log.glm)$r.squared
+#R_2<- 1 - log.glm$deviance/log.glm$null.deviance
+
+#summary(Mincer3.reg)
+#summary(log.glm)
+
+
+stargazer(Mincer1.reg, Mincer2.reg,
+          title = 'Mincer Equation Results',
+          covariate.labels = c('Years education', 
+                               'Potential experience',
+                               '(Potential experience)$^2$',
+                               'Gender',
+                               'Race -- black',
+                               'Race -- Hispanic'),
+          dep.var.labels   = c('1980-1985', '2010-2016'),
+          omit.stat=c("LL","ser","f"),
+          header = FALSE, no.space = TRUE)
+
+@
 \bibliographystyle{plain}
 \bibliography{bibliography}
  
