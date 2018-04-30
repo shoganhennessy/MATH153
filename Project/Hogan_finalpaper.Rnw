@@ -10,7 +10,7 @@
 \SweaveOpts{concordance=TRUE}
 
  
-\title{Bayesian Linear Regression and Inequaliy in Income Data}
+\title{Bayesian Linear Regression Applied to Income Data}
 \author{Senan Hogan-H.\\ 
 MATH 153: Bayesian Statistics} 
 \date{May 2018}
@@ -20,25 +20,33 @@ set.seed(47)
 library(tidyverse)
 library(data.table)
 library(stargazer)
-#library(MCMCpack)
 library(BAS)
+library(bayesQR)
+
 #CPS.data <- fread('Project/CPS__test_data.csv', header = T, sep = ',')
-#CPS.data <- fread('CPS_data.csv', header = T, sep = ',')
+#CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',')
 CPS.data <- read.csv('CPS__test_data.csv')
-CPS.data <- CPS.data %>% subset(year>=2010 & year<=2016) %>% subset(select = c(
+
+CPS.data$pot_exp <- CPS.data$age - CPS.data$education - 6
+CPS.data$pot_exp_2 <- CPS.data$pot_exp^2
+
+CPS.data <- CPS.data %>% subset(year>=2010 & year<=2016) 
+  
+CPS.data <- CPS.data %>% subset(select = c(
   'rincp_ern', # real annual earnings (no unearned income), for person
-  'age', # age
+  'education', #education variable
+  'pot_exp',
+  'pot_exp_2',
   'female', # whether female
   'married', # whether married
   'rural', # whether live in rural area
   'suburb', # whether live in suburbs
   'centcity', # whether they live in a central city
   'selfemp', # self-employed
-  'education', #education variable
   'Race_white', 'Race_black', 'Race_hispanic' # race vairables
 ))
-CPS.data$pot_exp <- CPS.data$age - CPS.data$education - 6
-CPS.data$pot_exp_2 <- CPS.data$pot_exp^2
+
+CPS.data <- CPS.data %>% sample_n(500)
 @
 
 \section{Wage Data and Frequentist Regression}
@@ -62,7 +70,7 @@ graph1
 \end{figure}
 The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{wage_mean}, \Sexpr{wage_sd}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.
 
-The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentistic linear regression of the following form:
+The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentist linear regression of the following form:
 \begin{equation}
 log(Y_{i})  = log(Y_0) + \rho s_{i} + \beta_{1} x_{i} + \beta_{2} x_{i}^2 + \varepsilon_{i}
 \end{equation}
@@ -83,6 +91,8 @@ stargazer(Mincer.reg,
           omit.stat=c("LL","ser","f"),
           header = FALSE, float = FALSE, no.space = TRUE)
 @
+
+An extra year of educations is associated with a rise of around 10\% in income, and the measure of potential experience with around 6\% but deteriorating for higher levels of experience (shown by the negative estimate on the quadratic term). The predictions are compared below to the $N$(\Sexpr{wage_mean}, \Sexpr{wage_sd}) distribution, showing how this approach fails to replicate the distribution, instead predicting a more equal distribution than the one observed.
 
 \begin{figure}
 << echo=FALSE, results=tex, warning=FALSE >>=
@@ -108,7 +118,7 @@ graph2
 @
 \end{figure}
 
-This regression approach has been names the Mincer wage equation or earnings function, which dates back to some of the first studies that focus on wage inequality \cite{mincer1958investment, mincer1974schooling}.  This model is extremely influential in labour economics to describe and predict inequality in wages in the US population.  Its influence comes in part from its theoretical foundations and simplicity in interpretation, yet is documented as being only accurate in predicting wages\footnote{Where the equation may estimated independently for different years.} for the 1950s, and less so after.  The approach is classic in the frequentist, econometrics paradiagm and is still (often egregiously) used in economic research today for predictive purposes.  Today, there are alternative approaches, that can factor observed inequality in the income distribution and its relationship to income and labour market experience. 
+This regression approach has been names the Mincer wage equation or earnings function, which dates back to some of the first studies that focus on wage inequality \cite{mincer1958investment, mincer1974schooling}.  This model is extremely influential in labour economics to describe and predict inequality in wages in the US population.  Its influence comes in part from its theoretical foundations and simplicity in interpretation, yet is documented as being only accurate in predicting wages\footnote{Where the equation may estimated independently for different years.} for the 1950s, and less so after.  The approach is classic in the frequentist, econometrics paradigm and is still (often egregiously) used in economic research today for predictive purposes.  
 
 \section{Generalisation of the Mincer Wage Equation}
 
@@ -129,18 +139,24 @@ e^{\frac{-x^2}{2}} dx
 \end{equation}
 If income follows this specific distribution  the error term  follows a normal distribution with expectation zero and variance $\sigma^2$.  However, this model is only useful when economists are considering the effect of conditional means (and their change) on the distribution of income.  For example, the framework is useful for considering an effect on mean income of a uniform increasing in education, but not useful for raising income for those at the bottom of the income distribution only \cite{okamoto2016mincer}.
 
+\section{Bayesian Approach}
 
-\section{Bayesian Regression}
+Explain differences, building framework for Bayesian inference.
+% https://towardsdatascience.com/introduction-to-bayesian-linear-regression-e66e60791ea7
+
+Uncertainty in model selection, build model by model averaging.  Some equations to explain what that is.
+
+
 << echo=FALSE, results=tex, warning=FALSE >>=
-log_wage_equation <- log(rincp_ern) ~  education + pot_exp + pot_exp_2 + 
-  female + married + rural + suburb + centcity + 
-  selfemp +  Race_white + Race_black + Race_hispanic
+wage_equation <- log(rincp_ern) ~ education + pot_exp + pot_exp_2 + 
+  female + married + rural + suburb + centcity + selfemp + Race_white + 
+  Race_black + Race_hispanic
 
-Bayes_av.reg <- bas.lm( log_wage_equation , 
-        prior = "BIC", 
-        modelprior = uniform(),
-        data=CPS.data,
-        na.action = "na.omit")
+Bayes_av.reg <- bas.lm( wage_equation , 
+                        data = CPS.data,
+                        prior = "BIC", 
+                        modelprior = uniform(),
+                        na.action = "na.omit")
 
 Bayes_av.reg
 summary(Bayes_av.reg)
@@ -148,12 +164,31 @@ summary(Bayes_av.reg)
 @
 
 
-\section{Derivation: Better prior}
-% see: http://www.ecineq.org/milano/WP/ECINEQ2016-407.pdf
+\section{Regression Across Quantiles}
+
+Some equations to minimise functions and explain what quantile regression is.
+% see: http://www.crm.ugent.be/bayesQR_Benoit_VandenPoel_JSS_v76i07.pdf
+
+Apply to wage data, showing different returns to education, wage gap etc. 
 
 % see: https://rpubs.com/mfondoum/bayesian_linear_regression
 
-\section{Why Does This Matter?}
+
+<< echo=FALSE, results=tex, warning=FALSE >>=
+n <- 1000
+Y <- log(CPS.data$rincp_ern)
+X <- CPS.data[, 2:14]
+Y <- scale(Y)
+X <- CPS.data[, 2:14]
+X <- scale(X)
+
+Bayes_q.reg <- bayesQR(Y ~ X, 
+                       quantile = c(0.1, 0.9), alasso = F,
+                       ndraw = n)
+
+Bayes_q.reg %>% plot(plottype = "trace")
+@
+
 
 
 
