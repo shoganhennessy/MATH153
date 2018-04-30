@@ -46,16 +46,15 @@ CPS.data <- CPS.data %>% subset(select = c(
 ))
 
 CPS.data <- CPS.data %>% sample_n(500)
+wage_mean <- mean(log(CPS.data$rincp_ern))
+wage_sd <- sd((log(CPS.data$rincp_ern)))
 @
 
 \section{Wage Data and Frequentist Regression}
 
-\begin{figure}[H]
-<< echo=FALSE, results=tex, warning=FALSE >>=
-wage_mean <- mean(log(CPS.data$rincp_ern))
-wage_sd <- sd((log(CPS.data$rincp_ern)))
-
-graph1 <- CPS.data %>% ggplot() +
+\begin{figure}
+<< echo=F, fig.align='center', fig.width=4, fig.height=4>>=
+CPS.data %>% ggplot() +
   geom_density(aes(x = log(rincp_ern)), colour = 'red') +
   stat_function(fun = function(x) dnorm(x, 
                                         mean = wage_mean, 
@@ -64,10 +63,10 @@ graph1 <- CPS.data %>% ggplot() +
   labs(x= 'Log Income, annual in 2015 CPI-R', y='Density') +
   coord_cartesian(xlim=c(9,12), ylim=c(0,1.5)) +
   theme_classic()
-graph1
 @
 \end{figure}
-The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{wage_mean}, \Sexpr{wage_sd}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.
+
+The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.
 
 The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentist linear regression of the following form:
 \begin{equation}
@@ -75,6 +74,8 @@ log(Y_{i})  = log(Y_0) + \rho s_{i} + \beta_{1} x_{i} + \beta_{2} x_{i}^2 + \var
 \end{equation}
 $Y_{i}$ represents a measure of income for an individual , $s_i$ years of education, and $Y_0$ the standard intercept.  $\rho$, $\beta_{1}$, $\beta_{2}$ are coefficients to be estimated with residual $\varepsilon_{i}$.  Potential experience, $x_{it}$, is defined as age minus years of education minus 6, i.e. $x_{it} = Age_{it} - s_{it} - 6$.  The equation may also include a dummy variable for race, gender, and possibly other variables to control for these differences.
 
+\begin{table}
+\centering 
 << echo=FALSE, results=tex, warning=FALSE >>=
 Mincer.reg <- CPS.data %>%
   lm( log(rincp_ern) ~ education + pot_exp + pot_exp_2,
@@ -90,10 +91,11 @@ stargazer(Mincer.reg,
           omit.stat=c("LL","ser","f"),
           header = FALSE, float = FALSE, no.space = TRUE)
 @
+\end{table}
 
-An extra year of educations is associated with a rise of around 10\% in income, and the measure of potential experience with around 6\% but deteriorating for higher levels of experience (shown by the negative estimate on the quadratic term). The predictions are compared below to the $N$(\Sexpr{wage_mean}, \Sexpr{wage_sd}) distribution, showing how this approach fails to replicate the distribution, instead predicting a more equal distribution than the one observed.
+An extra year of educations is associated with a rise of around 10\% in income, and the measure of potential experience with around 6\% but deteriorating for higher levels of experience (shown by the negative estimate on the quadratic term). The predictions are compared below to the $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution, showing how this approach fails to replicate the distribution, instead predicting a more equal distribution than the one observed.
 
-\begin{figure}
+
 << echo=FALSE, results=tex, warning=FALSE >>=
 predicted.data <- data.frame(log(CPS.data$rincp_ern),
                              Mincer.reg$fitted.values)
@@ -102,8 +104,11 @@ wage_mean <- mean(log(CPS.data$rincp_ern))
 wage_sd <- sd((log(CPS.data$rincp_ern)))
 
 colnames(predicted.data) <- c("Log_income", "OLS_predicted_Log_income")
+@
 
-graph2 <- predicted.data %>% ggplot() +
+\begin{figure}
+<< echo=F, fig.align='center', fig.width=4, fig.height=4>>=
+predicted.data %>% ggplot() +
   geom_density(aes(x = OLS_predicted_Log_income), colour = 'red') +
   stat_function(fun = function(x) dnorm(x, 
                                         mean = wage_mean, 
@@ -112,8 +117,6 @@ graph2 <- predicted.data %>% ggplot() +
   labs(x= 'OLS Predicted Log Income', y='Density') +
   coord_cartesian(xlim=c(9,12), ylim=c(0,1.5)) +
   theme_classic()
-
-graph2
 @
 \end{figure}
 
@@ -148,17 +151,15 @@ Uncertainty in model selection, build model by model averaging.  Some equations 
 
 << echo=FALSE, results=tex, warning=FALSE >>=
 wage_equation <- log(rincp_ern) ~ education + pot_exp + pot_exp_2 + 
-  female + married + rural + suburb + centcity + selfemp + Race_white + 
-  Race_black + Race_hispanic
+  female + married + rural + centcity + Race_black + Race_hispanic
 
 Bayes_av.reg <- bas.lm( wage_equation , 
                         data = CPS.data,
                         prior = "BIC", 
                         modelprior = uniform(),
                         na.action = "na.omit")
+#Bayes_av.reg
 
-Bayes_av.reg
-summary(Bayes_av.reg)
 # https://rpubs.com/mfondoum/bayesian_linear_regression
 @
 
@@ -174,18 +175,18 @@ Apply to wage data, showing different returns to education, wage gap etc.
 
 
 << echo=FALSE, results=tex, warning=FALSE >>=
-n <- 1000
-Y <- log(CPS.data$rincp_ern)
-X <- CPS.data[, 2:14]
-Y <- scale(Y)
-X <- CPS.data[, 2:14]
-X <- scale(X)
 
-Bayes_q.reg <- bayesQR(Y ~ X, 
+# Equation chosen by above model selection
+wage_equation <- log(rincp_ern) ~ education + pot_exp + pot_exp_2 + 
+  female  + rural
+n <- 1000
+
+Bayes_q.reg <- bayesQR(wage_equation , 
+                        data = CPS.data, 
                        quantile = c(0.1, 0.9), alasso = F,
                        ndraw = n)
 
-Bayes_q.reg %>% plot(plottype = "trace")
+#Bayes_q.reg %>% plot(plottype = "trace")
 @
 
 
