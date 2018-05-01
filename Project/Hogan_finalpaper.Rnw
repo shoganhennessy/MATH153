@@ -69,7 +69,7 @@ CPS.data %>% ggplot() +
 @
 \end{figure}
 
-The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.  The set is a \Sexpr{n_sample} subset, to demonstrate Bayesian capabilities without washing out priors by the (available) thousands of observations.
+The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution.  The plot below shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.  The set is a \Sexpr{n_sample} subset, to demonstrate Bayesian capabilities without washing out priors by the (available) thousands of observations.
 
 The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentist linear regression of the following form:
 \begin{equation}
@@ -124,7 +124,7 @@ predicted.data %>% ggplot() +
 @
 \end{figure}
 
-This regression approach has been names the Mincer wage equation or earnings function, which dates back to some of the first studies that focus on wage inequality \cite{mincer1958investment, mincer1974schooling}.  This model is extremely influential in labour economics to describe and predict inequality in wages in the US population.  Its influence comes in part from its theoretical foundations and simplicity in interpretation, yet is documented as being only accurate in predicting wages\footnote{Where the equation may estimated independently for different years.} for the 1950s, and less so after.  The approach is classic in the frequentist, econometrics paradigm and is still (often egregiously) used in economic research today for predictive purposes.  
+This regression approach has been named the Mincer wage equation or earnings function, which dates back to some of the first studies that focus on wage inequality \cite{mincer1958investment, mincer1974schooling}.  This model is extremely influential in labour economics to describe and predict inequality in wages in the US population.  Its influence comes in part from its theoretical foundations and simplicity in interpretation, yet is documented as being only accurate in predicting wages\footnote{Where the equation may estimated independently for different years.} for the 1950s, and less so after.  The approach is classic in the frequentist, econometrics paradigm and is still (often egregiously) used in economic research today for predictive purposes.  
 
 \section{Generalisation of the Mincer Wage Equation}
 
@@ -147,7 +147,7 @@ If income follows this specific distribution  the error term  follows a normal d
 
 \section{Bayesian Approach}
 
-The Bayesian approach to estimating the distribution of wages has some notable differences.  Let start with the priors.
+The Bayesian approach to estimating the distribution of wages has some notable differences.  Let's start with the priors.
 
 Let $\rho(\beta,\sigma^{2})$ be a prior on coefficients in the regression, so that $\beta = (\beta_1, \beta_2, \dots, \beta_k)$ for an undetermined number, $k$, of regressors in matrix $X$.  An uninformative prior in this case may be a uniform, or we could use a normal centred around some convenient means. In the standard Bayesian approach, we are looking for the posterior distribution, expressed as follows.
 
@@ -194,7 +194,7 @@ log(Y_{i}) = log(Y_0) + \beta_{1} s_{i} + \beta_{2} x_{i} + \beta_{3} x_{i}^2 + 
 
 \section{Bayesian Regression Across Quantiles}
 
-Quantile regression in the frequentist paradigm  involves adjusting the error function to produce an estimate for coefficient at given quantiles.  Extension of this process to Bayesian regression allows for model uncertainty to be factored, as well as the use of priors on coefficients.  This analysis is especially for wage data as we may expect returns to certain variables not be constant across the distribution of income.  For example how do extra years of education affect income at the bottom 10\% of the income distribution compared to the top, and what kind of distribution does Bayesian analysis estimate for either?
+Quantile regression in the frequentist paradigm  involves adjusting the error function to produce an estimate for coefficient at given quantiles.  Extension of this process to Bayesian regression allows for model uncertainty to be factored, as well as the use of priors on coefficients.  This analysis is especially useful for wage data as we may expect returns to certain variables not be constant across the distribution of income.  For example how do extra years of education affect income at the bottom 10\% of the income distribution compared to the top, and what kind of distribution does Bayesian analysis estimate for either?
 
 This section introduces the Bayesian Quantile regression, a relatively recent development in statistics, applied to the model developed previously.  The equations follow that presented in \cite{benoit2017bayesqr}, which builds the \textit{BayesQR} package and is a great way to implement Bayesian quantile regression in R.
 
@@ -244,7 +244,7 @@ B = V(\sum_{i=1}^n \frac{x_i(y_i - \theta v_i)}{\omega^2 \sigma v_i})
 With more complicated, yet tractable, conditional posterior distributions for $\sigma$ and $v$ provided in \cite{benoit2017bayesqr}.  
 
 \subsection{Application to Returns to Education}
-Below I apply this Bayesian quantile regression to the March CPS wage data.  Quantiles $\tau = 0.1, 0.9$ are considered, as the top and bottom 10\% of the income distribution are most widely considered as comparison groups in the economic literature \cite{juhn1993wage}.
+Next I apply this Bayesian quantile regression to the March CPS wage data.  Quantiles $\tau = 0.1, 0.9$ are considered, as the top and bottom 10\% of the income distribution are most widely considered as comparison groups in the economic literature \cite{juhn1993wage}.
 
 << echo=F, results=hide >>=
 
@@ -271,7 +271,11 @@ Bayes_q90.data <- as.data.frame(Bayes_q90.reg[[1]]$betadraw)
 colnames(Bayes_q90.data) <- Bayes_q90.reg[[1]]$names
 @
 
-Below are the MC chain samples of the posterior distribution for estimated coefficient for years of education at the two quantiles.  The frequentist estimate is layed over the desnsity plots, showing how returns to education are estimated to be more variable for 0.1 quantile than for the 0.9 quantile, though both are not far from the frequentist point estimate. 
+Included are the distributions of MC chain samples of the posterior distribution for estimated coefficient for years of education at the two quantiles.  The frequentist estimate is layed over the desnsity plots, showing how returns to education are estimated to be more variable for 0.1 quantile than for the 0.9 quantile, though both are not far from the frequentist point estimate. 
+
+The same process can be seen for other variables in the same manner, as well as the association between income and other variables.  The analysis has applied some specific Bayesian regression and quantile regression to a data set often used in economics.  The use of Bayesian linear regression is important to consider in economics, as previously only a frequentist linear approach.  For example, the famous Oaxaca, Blinder (1973) wage decomposition has been extended to quantile regression \cite{machado2005counterfactual} and recently to Bayesian methods \cite{radchenko2003bayesian}.  Yet, no significant studies have \textit{combined} them to take advantge of the benefits of \textit{both} approaches.
+
+\nocite{blinder1973wage, oaxaca1973male}
 
 \begin{figure}
 \centering 
