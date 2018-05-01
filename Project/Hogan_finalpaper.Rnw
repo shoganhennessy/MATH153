@@ -8,7 +8,7 @@
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
-
+\setkeys{Gin}{width=0.45\textwidth} 
  
 \title{Bayesian Linear Regression Applied to Income Data}
 \author{Senan Hogan-H.\\ 
@@ -22,9 +22,10 @@ library(data.table)
 library(stargazer)
 library(BAS)
 library(bayesQR)
+library(xtable)
 
-#CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',')
-CPS.data <- read.csv('CPS_data.csv')
+#CPS.data <- fread('Project/CPS_data.csv', header = T, sep = ',', showProgress = FALSE)
+CPS.data <- fread('CPS_data.csv', header = T, sep = ',', showProgress = FALSE)
 
 CPS.data$pot_exp <- CPS.data$age - CPS.data$education - 6
 CPS.data$pot_exp_2 <- CPS.data$pot_exp^2
@@ -45,7 +46,9 @@ CPS.data <- CPS.data %>% subset(select = c(
   'Race_white', 'Race_black', 'Race_hispanic' # race vairables
 ))
 
-CPS.data <- CPS.data %>% sample_n(500)
+n_sample <- 500
+CPS.data <- CPS.data %>% sample_n(n_sample)
+
 wage_mean <- mean(log(CPS.data$rincp_ern))
 wage_sd <- sd((log(CPS.data$rincp_ern)))
 @
@@ -53,7 +56,8 @@ wage_sd <- sd((log(CPS.data$rincp_ern)))
 \section{Wage Data and Frequentist Regression}
 
 \begin{figure}
-<< echo=F, fig.align='center', fig.width=4, fig.height=4>>=
+\centering 
+<< echo=F, fig.align='center', fig=TRUE>>=
 CPS.data %>% ggplot() +
   geom_density(aes(x = log(rincp_ern)), colour = 'red') +
   stat_function(fun = function(x) dnorm(x, 
@@ -66,7 +70,7 @@ CPS.data %>% ggplot() +
 @
 \end{figure}
 
-The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.
+The distribution of income, here measured by annual income in 2015 CPI-R dollars, is well approximated for 2010-2016 by a $N$(\Sexpr{round(wage_mean, digits=2)}, \Sexpr{round(wage_sd, digits=2)}) distribution.  The above shows the distribution of income (red) compared to the mentioned Normal distribution.  Here, data is taken from the March CPS, a representative survey of annual data for individuals in the US \cite{center}.  The set is a \Sexpr{n_sample} subset, to demonstrate Bayesian capabilities without washing out priors by the (available) thousands of observations.
 
 The distribution of income, and thus inequality of income, is regularly explained in labour economics by a frequentist linear regression of the following form:
 \begin{equation}
@@ -107,7 +111,8 @@ colnames(predicted.data) <- c("Log_income", "OLS_predicted_Log_income")
 @
 
 \begin{figure}
-<< echo=F, fig.align='center', fig.width=4, fig.height=4>>=
+\centering 
+<< echo=F, fig=TRUE, fig.align='center'>>=
 predicted.data %>% ggplot() +
   geom_density(aes(x = OLS_predicted_Log_income), colour = 'red') +
   stat_function(fun = function(x) dnorm(x, 
@@ -143,11 +148,22 @@ If income follows this specific distribution  the error term  follows a normal d
 
 \section{Bayesian Approach}
 
-Explain differences, building framework for Bayesian inference.
-% https://towardsdatascience.com/introduction-to-bayesian-linear-regression-e66e60791ea7
+The Bayesian approach to estimating the distribution of wages has some notable differences.  Let start with the priors.
 
-Uncertainty in model selection, build model by model averaging.  Some equations to explain what that is.
+Let $\rho(\beta,\sigma^{2})$ be a prior on coefficients in the regression, so that $\beta = (\beta_1, \beta_2, \dots, \beta_k)$ for an undetermined number, $k$, of regressors in matrix $X$.  An uniformative prior in this case may be a uniform, or we could use a normal centred around some convenient means. In the standard Bayesian approach, we are looking for the posterior distribution, expressed as follows.
 
+$$\rho(\beta,\sigma^{2}| Y, X) \propto \rho(Y|\beta,\sigma^{2} , X)\rho(\beta,\sigma^{2})$$
+
+Only in the case that the prior is conjugate to the posterior will the solution take an analtyical form, which is not generally realistic so that more complicated MCMC sampling methods are required.
+
+\section{Model Selection}
+
+A frequentist setting does not factor any uncertainty in model selection, as in inclusion of variables.  The labour economics literature reguarly uses a Mincer wage equation with controls, barely even noting the exact functional form beyond a footnote.  The Bayesian approach allows us to more robustly select model controls.  The March CPS provides data for the standard regressors in a Mincer equation, education and a measure of potential experience, as well as dummies for whether an individual is female, married, lives n rural area or city, and for whether they are black or Hispanic (so comparing to the white population).
+
+Bayesian model selection involves considering the model evidence, for a given regression model $m$, $p(Y|m)$.  This is defined as follows.
+$$ p(Y|m)=\int p(Y|\mathbf{X},\beta,\sigma)\, p(\beta,\sigma)\, d\beta\, d\sigma$$
+
+Below is some code for a Bayesian model selection of the Mincer Wage Equation, with a uniform prior on all coefficients (uninformative prior), showing the 5 most likely models with given controls.  It is clear that the most likely model is that of the original Mincer equation with only controls included for the gender wage gap, and a wage penalty for the black population, with a posterior probability of 0.54.
 
 << echo=FALSE, results=tex, warning=FALSE >>=
 wage_equation <- log(rincp_ern) ~ education + pot_exp + pot_exp_2 + 
@@ -158,37 +174,131 @@ Bayes_av.reg <- bas.lm( wage_equation ,
                         prior = "BIC", 
                         modelprior = uniform(),
                         na.action = "na.omit")
-#Bayes_av.reg
-
+xtable(summary(Bayes_av.reg))
 # https://rpubs.com/mfondoum/bayesian_linear_regression
+
+# Next remove the other variables, for coding convenience
+CPS.data <- CPS.data %>% subset(select = c(
+  'rincp_ern', # real annual earnings (no unearned income), for person
+  'education', #education variable
+  'pot_exp',
+  'pot_exp_2',
+  'female', # whether female
+  'Race_black' # race variable
+))
 @
 
+It follows that a model of the following form will be estimated in this context, with variables as previously specified:
+\begin{equation}
+log(Y_{i}) = log(Y_0) + \beta_{1} s_{i} + \beta_{2} x_{i} + \beta_{3} x_{i}^2 + \beta_{4} female_{i} + \beta_{5} Black_{i} + \varepsilon_{i}
+\end{equation}
 
-\section{Regression Across Quantiles}
+\section{Bayesian Regression Across Quantiles}
 
-Some equations to minimise functions and explain what quantile regression is.
-% see: http://www.crm.ugent.be/bayesQR_Benoit_VandenPoel_JSS_v76i07.pdf
+Quantile regression in the frequentist paradigm  involves adjusting the error function to produce an estimate for coefficient at given quantiles.  Extension of this process to Bayesian regression allows for model uncertainty to be factored, as well as the use of priors on coefficients.  This analysis is especially for wage data as we may expect returns to certain variables not be constant across the distribution of income.  For example how do extra years of education affect income at the bottom 10\% of the income distribution compared to the top, and what kind of distribution does Bayesian analysis estimate for either?
 
-Apply to wage data, showing different returns to education, wage gap etc. 
+This section introduces the Bayesian Quantile regression, a relatively recent development in statistics, applied to the model developed previously.  The equations follow that presented in \cite{benoit2017bayesqr}, which builds the \textit{BayesQR} package and is a great way to implement Bayesian quantile regression in R.
 
-% see: https://rpubs.com/mfondoum/bayesian_linear_regression
+First, for a quantile of interest consider a three-parameter asymmetric Laplace distribution (ALD) density:
+\begin{equation}
+f(x|\mu, \sigma, \tau) = \frac{\tau(1-\tau)}{\sigma} e^{-\rho_{\tau}\frac{x-\mu}{\sigma}}
+\end{equation}
 
+Here, $\rho_{\tau}(x) = x(\tau - I(x<0))$ and $I(.)$ is th indicator function.  Bayesian implementation of quantile regression begins by forming a likelihood comprised of
+independent asymmetric Laplace densities for $\mu = x_i^T \beta$ for each $i = 1, \dots, n$ (where $x_i$ is here defined as the vector of regressors, $\beta$ vector of coefficients).  Before moving forward, a quantile of interest $\tau$ and priors for model parameters $\beta$ and $\sigma$, should be specified.  The posterior distribution is then as follows, for a specified prior $\pi(.)$ and $ALD(.|\mu, \sigma, \tau)$ density of the ALD.
 
-<< echo=FALSE, results=tex, warning=FALSE >>=
+\begin{equation}
+\psi(\beta, \sigma |x, y,  \tau) \propto \pi(\beta, \sigma) \prod_{i=1}^n ALD(y_i | x_i^T \beta, \sigma, \tau)
+\end{equation}
+
+\subsection{MCMC Sampling for Regression on a Continuous Variable}
+
+This framework for implementing a quantile regression can take a few forms for the next steps, we'll focus on the format of a continuous response variable without adaptive LASSO for variable selection (as we've already looked at some skin-deep model selection).
+
+A straightforward prior for $\beta$ is the multivariate normal distribution, Normal(mean = $\beta_0$, varcov = $V_0$).  For the prior on $\sigma$, consider the inverse gamma distribution invGamma(shape = $n_0$, scale = $s_0$), with density as follows.
+\begin{equation}
+f(x|n_0, s_0) = \frac{s_0^{n_0}}{\Gamma(n_0)} x^{-n_0 -1}e^{-\frac{s_0}{x}}
+\end{equation}
+
+In this Bayesian approach to quantile regression, the error term is assumed to follow the asymmetric Laplace distribution.  \cite{kozumi2011gibbs} shows that the ALD can be represented as a location scale mixture of normal distributions, where the mixing distribution follows an exponential distribution, so that the regression can be written as:
+\begin{equation}
+log(Y_{i}) = y_i = x_i^T \beta + \varepsilon_{i} = x_i^T \beta + \theta v_i + \omega u_i \sqrt{\sigma v_i}
+\end{equation}
+
+Here $v_i= \sigma z_i$, $\theta = \frac{1-2\tau}{\tau(1-\tau)}$, $\omega^2 = \frac{2}{\tau(1-\tau)}$, $z_i$ is a standard exponential and $u_i$ is a standard normal variate.  So that the likelhood function takes the form as follows.
+\begin{equation}
+f(y_i | x_i^T \beta, \sigma, \tau) \propto e^{-\sum_{i=1}^n \frac{(y_i - x_i^T \beta - \theta v_i)^2}{2\omega^2 \sigma v_i}} \prod_{i=1}^n \frac{1}{\sqrt{\sigma v_i}}
+\end{equation}
+
+Now a Gibbs sampling algorithm involves drawing $\beta$, $\sigma$ and $z$ from their full conditional distributions.  Further computation by \cite{benoit2017bayesqr} show that the full conditional density of $\beta$ is given by:
+\begin{equation}
+\psi(\beta | \sigma , v , y, x, \tau) \sim N(B, V)
+\end{equation}
+where
+\begin{equation}
+V^{-1} = \sum_{i=1}^n \frac{x_i^T x_i}{\omega^2 \sigma v_i} + V_0^{-1}
+\end{equation}
+\begin{equation}
+B = V(\sum_{i=1}^n \frac{x_i(y_i - \theta v_i)}{\omega^2 \sigma v_i})
+\end{equation}
+
+With more complicated, yet tractable, conditional posterior distributions for $\sigma$ and $v$ provided in \cite{benoit2017bayesqr}.  Below I apply this Bayesian quantile regression to the March CPS wage data.  Quantiles $\tau = 0.1, 0.9$ are considered, as the top and bottom 10\% of the income distribution are most widely considered as comparison groups in the economic literature \cite{juhn1993wage}.
+
+<< echo=F, results=hide >>=
 
 # Equation chosen by above model selection
 wage_equation <- log(rincp_ern) ~ education + pot_exp + pot_exp_2 + 
-  female  + rural
-n <- 1000
+  female  + Race_black
+n <- 10000
 
+Bayes_q10.reg <- bayesQR(wage_equation , 
+                      data = CPS.data, 
+                       quantile = 0.1, alasso = F,
+                       ndraw = n,
+                       seed = 47)
+Bayes_q10.data <- as.data.frame(Bayes_q10.reg[[1]]$betadraw)
+colnames(Bayes_q10.data) <- Bayes_q10.reg[[1]]$names
+
+
+Bayes_q90.reg <- bayesQR(wage_equation , 
+                      data = CPS.data, 
+                       quantile = 0.9, alasso = F,
+                       ndraw = n,
+                       seed = 47)
+Bayes_q90.data <- as.data.frame(Bayes_q90.reg[[1]]$betadraw)
+colnames(Bayes_q90.data) <- Bayes_q90.reg[[1]]$names
+
+p <- c(1:10)/10
 Bayes_q.reg <- bayesQR(wage_equation , 
-                        data = CPS.data, 
-                       quantile = c(0.1, 0.9), alasso = F,
-                       ndraw = n)
-
-#Bayes_q.reg %>% plot(plottype = "trace")
+                      data = CPS.data, 
+                       quantile = p, alasso = F,
+                       ndraw = n,
+                       seed = 47)
 @
 
+\begin{figure}
+\centering 
+<< echo=F, fig.align='center', fig=TRUE, warning=F>>=
+# summary(Bayes_q10.reg, burnin = n/5)
+# summary(Bayes_q90.reg, burnin = n/5)
+# Bayes_q.reg %>% plot(plottype = "quantile", burnin = n/5)
+
+freq.coeff <- as.numeric(Mincer.reg$coefficients[2])
+
+Bayes_q10.data %>% ggplot() +
+  geom_histogram(aes(x=education, y = ..density..), binwidth = .005) +
+  labs(title = "0.1 Quantile Education Coefficient Posterior Distribution", 
+       x = "Estimated Education Coefficient") +
+  xlim(0,0.25) + geom_vline(xintercept = freq.coeff, colour = 'red')
+
+Bayes_q90.data %>% ggplot() +
+  geom_histogram(aes(x=education, y = ..density..), binwidth = .005) +
+  labs(title = "0.9 Quantile Education Coefficient Posterior Distribution", 
+       x = "Estimated Education Coefficient") +
+  xlim(0,0.25) + geom_vline(xintercept = freq.coeff, colour = 'red')
+
+@
+\end{figure}
 
 
 
